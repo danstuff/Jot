@@ -38,7 +38,7 @@ public class NoteEditActivity extends AppCompatActivity {
         if(note != null) {
             TitleInput.setText(note.title);
         } else {
-            note = new Note();
+            note = NoteIO.noteList.addNew();
         }
 
         //configure adapter and misc for lines recycler
@@ -47,8 +47,7 @@ public class NoteEditActivity extends AppCompatActivity {
         //dragging items up/down rearranges them, left/right deletes them
         ItemTouchHelper itHelper = new ItemTouchHelper(
             new ItemTouchHelper.SimpleCallback(
-                    ItemTouchHelper.UP | ItemTouchHelper.DOWN,
-                    ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+                    ItemTouchHelper.UP | ItemTouchHelper.DOWN, ItemTouchHelper.RIGHT) {
                 @Override
                 public boolean onMove(@NonNull RecyclerView recycler,
                                       @NonNull RecyclerView.ViewHolder viewHolder,
@@ -131,6 +130,6 @@ public class NoteEditActivity extends AppCompatActivity {
     void save(){
         //update the note title based on text entry and save with NoteIO
         LineAdapter.note.title = TitleInput.getText().toString();
-        NoteIO.save(this, LineAdapter.note);
+        NoteIO.saveAll(this);
     }
 }

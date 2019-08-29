@@ -9,66 +9,65 @@ import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.List;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class NoteIO {
-    public static Note load(Context context, String filename) {
-        Note note = null;
+    private static final String filename = "JotNotes.dat";
 
+    public static NoteList noteList = null;
+
+    public static void loadAll(Context context) {
         try {
             InputStream fileIn = context.openFileInput(filename);
             ObjectInputStream in = new ObjectInputStream(fileIn);
 
-            note = (Note) in.readObject();
-            Note.last_id = note.id;
-
+            noteList = (NoteList) in.readObject();
         } catch (Exception e) {
             Toast.makeText(context, e.toString(), Toast.LENGTH_LONG).show();
         }
 
-        return note;
+        if(noteList == null){
+            noteList = new NoteList();
+        }
     }
 
-    public static void save(Context context, Note note) {
+    public static void saveAll(Context context) {
         try {
-            if(note.title.length() <= 0) {
-                throw new Throwable("Please specify a title");
-            }
-            String filename = "Note" + note.id + ".dat";
-
             ObjectOutputStream out = new ObjectOutputStream(
                     context.openFileOutput(filename, 0));
 
-            out.writeObject(note);
+            out.writeObject(noteList);
             out.close();
 
-            Toast.makeText(context, note.title + " saved",
+            Toast.makeText(context, "All notes saved",
                     Toast.LENGTH_SHORT).show();
         } catch (Throwable t){
             Toast.makeText(context, t.toString(), Toast.LENGTH_LONG).show();
         }
     }
 
-    public static void delete(Context context, Note note){
-        String filename = "Note" + note.id + ".dat";
-        File file = new File(context.getFilesDir(), filename);
-        file.delete();
-    }
-
-    public static void backup(Context context, List<Note> notes){
+    public static void backup(Context context){
         try {
+            DateFormat dtf = new SimpleDateFormat("MM/dd/yy");
+            Date today = new Date();
+
+            String stamp = dtf.format(today);
+            String bup_name = "jot_backup " + stamp + ".txt";
+
             //find downloads directory, create new file there
             File dl_dir = Environment.getExternalStoragePublicDirectory(
                     Environment.DIRECTORY_DOWNLOADS);
 
-            File bup =  new File(dl_dir, "jot_backup.txt");
+            File bup =  new File(dl_dir, bup_name);
 
             //create output stream
             FileWriter out = new FileWriter(bup);
 
             //iterate through each note and write it line by line
-            for(int i = 0; i < notes.size(); i++){
-                Note note = notes.get(i);
+            for(int i = 0; i < noteList.data.size(); i++){
+                Note note = noteList.get(i);
 
                 out.write(note.title+"\n");
 
@@ -81,7 +80,7 @@ public class NoteIO {
 
             out.close();
 
-            Toast.makeText(context, "jot_backup.txt saved in Downloads",
+            Toast.makeText(context, bup_name + " saved in Downloads",
                     Toast.LENGTH_SHORT).show();
         } catch (Throwable t){
             Toast.makeText(context, t.toString(), Toast.LENGTH_LONG).show();

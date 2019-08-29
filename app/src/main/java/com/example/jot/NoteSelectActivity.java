@@ -19,8 +19,6 @@ import java.util.List;
 
 public class NoteSelectActivity extends AppCompatActivity
         implements ActivityCompat.OnRequestPermissionsResultCallback {
-    private List<Note> notesList = new ArrayList<>();
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -54,7 +52,7 @@ public class NoteSelectActivity extends AppCompatActivity
         RecyclerView NotesRecycler = findViewById(R.id.NotesRecycler);
 
         //create a click event for each recycler note via an adapter
-        final NoteSelectAdapter NotesAdapter = new NoteSelectAdapter(notesList,
+        final NoteSelectAdapter NotesAdapter = new NoteSelectAdapter(
                 new NoteSelectAdapter.OnNoteClickListener() {
                     @Override
                     public void onNoteClick(Note note) {
@@ -72,7 +70,7 @@ public class NoteSelectActivity extends AppCompatActivity
         NotesRecycler.setItemAnimator(new DefaultItemAnimator());
         NotesRecycler.setAdapter(NotesAdapter);
 
-        loadNotes();
+        NoteIO.loadAll(this);
     }
 
     @Override
@@ -80,20 +78,7 @@ public class NoteSelectActivity extends AppCompatActivity
                                            String[] permissions, int[] grantResults){
         //back up the notes if you got permission for external file saving
         if(requestCode == 101 && grantResults[0] == PackageManager.PERMISSION_GRANTED){
-            NoteIO.backup(NoteSelectActivity.this, notesList);
-        }
-    }
-
-    private void loadNotes() {
-        //fetch all files in main directory
-        File directory = getFilesDir();
-        File[] files = directory.listFiles();
-
-        //load each file into the list
-        for(int f = 0; f < files.length; f++){
-            Note note = NoteIO.load(this, files[f].getName());
-
-            if(note != null){ notesList.add(note); }
+            NoteIO.backup(NoteSelectActivity.this);
         }
     }
 }

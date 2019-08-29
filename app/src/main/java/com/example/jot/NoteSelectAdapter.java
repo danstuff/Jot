@@ -9,8 +9,6 @@ import android.widget.TextView;
 
 import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.List;
-
 public class NoteSelectAdapter extends
         RecyclerView.Adapter<NoteSelectAdapter.ViewHolder> {
     public interface OnNoteClickListener {
@@ -19,11 +17,9 @@ public class NoteSelectAdapter extends
     }
 
     private OnNoteClickListener listener;
-    private List<Note> notesList;
 
-    public NoteSelectAdapter(List<Note> notesList, OnNoteClickListener listener) {
+    public NoteSelectAdapter(OnNoteClickListener listener) {
         this.listener = listener;
-        this.notesList = notesList;
     }
 
     @Override
@@ -37,7 +33,7 @@ public class NoteSelectAdapter extends
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         //fetch note from list; set the holder's title and lines
-        final Note note = notesList.get(position);
+        final Note note = NoteIO.noteList.get(position);
         final int pos = position;
 
         String line0 = note.lines.size() > 0 ? note.lines.get(0) : "";
@@ -61,8 +57,9 @@ public class NoteSelectAdapter extends
                         .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                notesList.remove(pos);
-                                NoteIO.delete(holder.itemView.getContext(), note);
+                                NoteIO.noteList.remove(pos);
+                                NoteIO.saveAll(holder.itemView.getContext());
+
                                 notifyItemRemoved(pos);
 
                                 dialogInterface.dismiss();
@@ -80,7 +77,7 @@ public class NoteSelectAdapter extends
 
     @Override
     public int getItemCount() {
-        return notesList.size();
+        return NoteIO.noteList.data.size();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
