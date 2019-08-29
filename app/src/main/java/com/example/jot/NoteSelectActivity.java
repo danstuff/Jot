@@ -4,13 +4,14 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.support.v4.app.ActivityCompat;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatButton;
-import android.support.v7.widget.DefaultItemAnimator;
-import android.support.v7.widget.LinearLayoutManager;
-import android.support.v7.widget.RecyclerView;
 import android.view.View;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
+import androidx.core.app.ActivityCompat;
+import androidx.recyclerview.widget.DefaultItemAnimator;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -54,17 +55,17 @@ public class NoteSelectActivity extends AppCompatActivity
 
         //create a click event for each recycler note via an adapter
         final NoteSelectAdapter NotesAdapter = new NoteSelectAdapter(notesList,
-            new NoteSelectAdapter.OnNoteClickListener() {
-                @Override
-                public void onNoteClick(Note note) {
-                    //intent to switch to main activity, and transmit the selected note
-                    Intent intent = new Intent(NoteSelectActivity.this,
-                            NoteEditActivity.class);
+                new NoteSelectAdapter.OnNoteClickListener() {
+                    @Override
+                    public void onNoteClick(Note note) {
+                        //intent to switch to main activity, and transmit the selected note
+                        Intent intent = new Intent(NoteSelectActivity.this,
+                                NoteEditActivity.class);
 
-                    intent.putExtra("NoteOpened", note);
-                    NoteSelectActivity.this.startActivity(intent);
-                }
-            });
+                        intent.putExtra("NoteOpened", note);
+                        NoteSelectActivity.this.startActivity(intent);
+                    }
+                });
 
         //attach essentials to the recycler, including the notes adapter
         NotesRecycler.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
