@@ -145,7 +145,6 @@ public class NoteSelectActivity extends AppCompatActivity
                     }
                 });
 
-
         //attach essentials to the recycler, including the notes adapter
         NotesRecycler.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         NotesRecycler.setItemAnimator(new DefaultItemAnimator());

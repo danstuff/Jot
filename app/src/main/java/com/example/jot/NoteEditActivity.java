@@ -88,7 +88,7 @@ public class NoteEditActivity extends AppCompatActivity {
         });
 
         //add a line when the NewLine button is clicked
-        FloatingActionButton NewLine = findViewById((R.id.NewLine));
+        AppCompatButton NewLine = findViewById((R.id.NewLine));
         NewLine.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
                 //add an entry and update the adapter
