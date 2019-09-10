@@ -32,66 +32,16 @@ public class NoteSelectActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note_select);
 
-        //button to create a new note
-        AppCompatButton NewNote = findViewById(R.id.NewNote);
-        NewNote.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view){
-                NoteIO.noteList.newNote();
-                NoteIO.noteList.selectNote(NoteIO.noteList.getLength()-1);
-
-                //switch to the main activity (edit note)
-                Intent intent = new Intent(NoteSelectActivity.this,
-                        NoteEditActivity.class);
-
-                NoteSelectActivity.this.startActivity(intent);
-            }
-        });
-
-        //button to back up all note data
-        final String[] options = {"Backup all notes", "Recover notes from backup"};
-
-        AppCompatButton BackupNotes = findViewById(R.id.BackupNotes);
-        BackupNotes.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AlertDialog backupAsk = new AlertDialog.Builder(NoteSelectActivity.this).setTitle("Backup Options")
-                        .setItems(options, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                if (i == 0){
-                                    //request external write permissions; later, back up the notes
-                                    String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
-                                    requestPermissions(perms, REQUEST_BACKUP_EXPORT);
-                                } else {
-                                    //request external read permissions; later, recover from backup
-                                    String[] perms = {Manifest.permission.READ_EXTERNAL_STORAGE};
-                                    requestPermissions(perms, REQUEST_BACKUP_IMPORT);
-                                }
-                            }
-                        }).create();
-                backupAsk.show();
-            }
-        });
-
         //create notes recycler
         RecyclerView NotesRecycler = findViewById(R.id.NotesRecycler);
 
+        //attach a generic linear layout manager and item animator
+        NotesRecycler.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
+        NotesRecycler.setItemAnimator(new DefaultItemAnimator());
+
         //create a click event for each recycler note via an adapter
-        final NoteSelectAdapter NotesAdapter = new NoteSelectAdapter(
-                new NoteSelectAdapter.OnNoteClickListener() {
-                    @Override
-                    public void onNoteClick(int position) {
-                        NoteIO.noteList.selectNote(position);
-
-                        //intent to switch to main activity, and transmit the selected note
-                        Intent intent = new Intent(NoteSelectActivity.this,
-                                NoteEditActivity.class);
-
-                        NoteSelectActivity.this.startActivity(intent);
-                    }
-                });
-
+        final NoteSelectAdapter NotesAdapter = new NoteSelectAdapter();
+        NotesRecycler.setAdapter(NotesAdapter);
 
         //dragging items up/down rearranges them
         ItemTouchHelper itHelper = new ItemTouchHelper(
@@ -117,7 +67,7 @@ public class NoteSelectActivity extends AppCompatActivity
                     public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
                         final int pos = viewHolder.getAdapterPosition();
 
-                        //prompt user if they want to delete
+                        //prompt user, double-check if they want to delete
                         AlertDialog deleteAsk = new AlertDialog.Builder(NoteSelectActivity.this)
                                 .setTitle("Confirm Delete")
                                 .setMessage("Do you want to delete '" + NoteIO.noteList.getNote(pos).getTitle() + "'?")
@@ -144,33 +94,65 @@ public class NoteSelectActivity extends AppCompatActivity
                         deleteAsk.show();
                     }
                 });
-
-        //attach essentials to the recycler, including the notes adapter
-        NotesRecycler.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
-        NotesRecycler.setItemAnimator(new DefaultItemAnimator());
-        NotesRecycler.setAdapter(NotesAdapter);
-
         itHelper.attachToRecyclerView(NotesRecycler);
 
+        //button to create a new note
+        AppCompatButton NewNote = findViewById(R.id.NewNote);
+        NewNote.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view){
+                NoteIO.noteList.newNote();
+                NoteIO.noteList.selectNote(NoteIO.noteList.getLength()-1);
+
+                //switch to the main activity (edit note)
+                Intent intent = new Intent(NoteSelectActivity.this,
+                        NoteEditActivity.class);
+
+                NoteSelectActivity.this.startActivity(intent);
+            }
+        });
+
+        //button to back up all note data
+        AppCompatButton BackupNotes = findViewById(R.id.BackupNotes);
+
+        final String[] options = {"Backup all notes", "Recover notes from backup"};
+
+        BackupNotes.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog backupAsk = new AlertDialog.Builder(NoteSelectActivity.this).setTitle("Backup Options")
+                        .setItems(options, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                if (i == 0){
+                                    //request external write permissions; later, back up the notes
+                                    String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
+                                    requestPermissions(perms, REQUEST_BACKUP_EXPORT);
+                                } else if (i == 1){
+                                    //request external read permissions; later, recover from backup
+                                    String[] perms = {Manifest.permission.READ_EXTERNAL_STORAGE};
+                                    requestPermissions(perms, REQUEST_BACKUP_IMPORT);
+                                }
+                            }
+                        }).create();
+                backupAsk.show();
+            }
+        });
+
+        //finish by loading in all the notes again
         NoteIO.loadAll(this);
     }
 
     @Override
-    public void onDestroy(){
-        NoteIO.saveAll(this);
-        super.onDestroy();
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode,
-                                           String[] permissions, int[] grantResults){
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] p, @NonNull int[] res){
+        //process requests to import/export external files
         if(requestCode == REQUEST_BACKUP_EXPORT &&
-           grantResults[0] == PackageManager.PERMISSION_GRANTED){
+           res[0] == PackageManager.PERMISSION_GRANTED){
             //back up the notes if you got permission for external file saving
             NoteIO.exportBackup(NoteSelectActivity.this);
 
         } else if(requestCode == REQUEST_BACKUP_IMPORT &&
-                grantResults[0] == PackageManager.PERMISSION_GRANTED){
+                res[0] == PackageManager.PERMISSION_GRANTED){
             //ask the user to choose a file
             Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
             intent.setType("*/*");
@@ -189,11 +171,18 @@ public class NoteSelectActivity extends AppCompatActivity
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        //if a backup file was selected, process it
         if(requestCode == REQUEST_CHOOSE_BACKUP_FILE && resultCode == RESULT_OK){
             Uri file_uri = data.getData();
             String file_path = file_uri.getEncodedPath();
 
             NoteIO.importBackup(this, file_path);
         }
+    }
+
+    @Override
+    public void onDestroy(){
+        NoteIO.saveAll(this);
+        super.onDestroy();
     }
 }

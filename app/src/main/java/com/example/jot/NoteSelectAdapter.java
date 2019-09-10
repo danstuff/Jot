@@ -1,5 +1,6 @@
 package com.example.jot;
 
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -9,17 +10,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class NoteSelectAdapter extends
         RecyclerView.Adapter<NoteSelectAdapter.ViewHolder> {
-    public interface OnNoteClickListener {
-        //interface for listening to clicks
-        void onNoteClick(int note_id);
-    }
-
-    private OnNoteClickListener listener;
-
-    public NoteSelectAdapter(OnNoteClickListener listener) {
-        this.listener = listener;
-    }
-
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext()).
@@ -42,7 +32,12 @@ public class NoteSelectAdapter extends
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                listener.onNoteClick(pos);
+                //select this note
+                NoteIO.noteList.selectNote(pos);
+
+                //switch to the note edit activity
+                Intent intent = new Intent(v.getContext(), NoteEditActivity.class);
+                v.getContext().startActivity(intent);
             }
         });
     }
