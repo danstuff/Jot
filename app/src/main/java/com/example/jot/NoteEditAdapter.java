@@ -54,6 +54,7 @@ public class NoteEditAdapter extends RecyclerView.Adapter<NoteEditAdapter.ViewHo
                 public void afterTextChanged(Editable s) {
                     //update the note when the text is changed
                     NoteIO.noteList.getSelected().setLine(getAdapterPosition(), s.toString());
+                    NoteIO.saveAll(LineText.getContext());
                 }
             });
         }

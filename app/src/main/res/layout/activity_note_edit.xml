@@ -13,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="end|bottom"
-        android:layout_marginEnd="120dp"
+        android:layout_marginEnd="60dp"
         android:width="60dp"
         android:height="60dp"
         android:background="@drawable/corner_button_end"
@@ -24,23 +24,6 @@
         android:paddingStart="15dp"
         android:paddingEnd="0dp"
         app:backgroundTint="#3F51B5" />
-
-    <androidx.appcompat.widget.AppCompatButton
-        android:id="@+id/SaveNote"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end|bottom"
-        android:layout_marginEnd="60dp"
-        android:width="60dp"
-        android:height="60dp"
-        android:minWidth="60dp"
-        android:minHeight="60dp"
-        android:paddingStart="15dp"
-        android:paddingEnd="0dp"
-        android:elevation="8dp"
-        android:background="@drawable/corner_button"
-        app:backgroundTint="#3F51B5"
-        android:drawableStart="@android:drawable/ic_menu_save"/>
 
     <androidx.appcompat.widget.AppCompatButton
         android:id="@+id/NewLine"

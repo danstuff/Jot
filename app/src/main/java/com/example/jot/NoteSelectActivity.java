@@ -54,7 +54,9 @@ public class NoteSelectActivity extends AppCompatActivity
                         //getNote to and from positions and do the move
                         int fromPos = viewHolder.getAdapterPosition();
                         int toPos = target.getAdapterPosition();
+
                         NoteIO.noteList.moveNote(fromPos, toPos);
+                        NoteIO.saveAll(NoteSelectActivity.this);
 
                         NotesAdapter.notifyDataSetChanged();
 
@@ -76,9 +78,9 @@ public class NoteSelectActivity extends AppCompatActivity
                                     public void onClick(DialogInterface dialogInterface, int i) {
                                         //remove the item and notify the adapter
                                         NoteIO.noteList.removeNote(pos);
-                                        NotesAdapter.notifyItemRemoved(pos);
-
                                         NoteIO.saveAll(NoteSelectActivity.this);
+
+                                        NotesAdapter.notifyItemRemoved(pos);
 
                                         dialogInterface.dismiss();
                                     }
@@ -103,6 +105,7 @@ public class NoteSelectActivity extends AppCompatActivity
             public void onClick(View view){
                 NoteIO.noteList.newNote();
                 NoteIO.noteList.selectNote(NoteIO.noteList.getLength()-1);
+                NoteIO.saveAll(NoteSelectActivity.this);
 
                 //switch to the main activity (edit note)
                 Intent intent = new Intent(NoteSelectActivity.this,

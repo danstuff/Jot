@@ -39,6 +39,7 @@ public class NoteEditActivity extends AppCompatActivity {
             @Override
             public void afterTextChanged(Editable editable) {
                 NoteIO.noteList.getSelected().setTitle(TitleInput.getText().toString());
+                NoteIO.saveAll(NoteEditActivity.this);
             }
         });
 
@@ -66,6 +67,8 @@ public class NoteEditActivity extends AppCompatActivity {
                     int toPos = target.getAdapterPosition();
 
                     NoteIO.noteList.getSelected().moveLine(fromPos, toPos);
+                    NoteIO.saveAll(NoteEditActivity.this);
+
                     LineAdapter.notifyDataSetChanged();
                     return true;
                 }
@@ -76,16 +79,12 @@ public class NoteEditActivity extends AppCompatActivity {
                     int pos = viewHolder.getAdapterPosition();
 
                     NoteIO.noteList.getSelected().removeLine(pos);
+                    NoteIO.saveAll(NoteEditActivity.this);
+
                     LineAdapter.notifyItemRemoved(pos);
                 }
             });
         itHelper.attachToRecyclerView(LineRecycler);
-
-        //button to save file
-        AppCompatButton SaveNote = findViewById(R.id.SaveNote);
-        SaveNote.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View view){ NoteIO.saveAll(NoteEditActivity.this); }
-        });
 
         //button to return to notes list
         AppCompatButton ShowNoteSelect = findViewById(R.id.ShowNoteSelect);
@@ -102,6 +101,8 @@ public class NoteEditActivity extends AppCompatActivity {
             @Override public void onClick(View view) {
                 //add an entry and update the adapter
                 NoteIO.noteList.getSelected().newLine();
+                NoteIO.saveAll(NoteEditActivity.this);
+
                 LineAdapter.notifyDataSetChanged();
 
                 LineRecycler.scrollToPosition(LineAdapter.getItemCount()-1);
