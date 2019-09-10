@@ -4,7 +4,9 @@ import android.content.Context;
 import android.os.Environment;
 import android.widget.Toast;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -12,6 +14,7 @@ import java.io.ObjectOutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class NoteIO {
     private static final String filename = "JotNotes.dat";
@@ -25,7 +28,7 @@ public class NoteIO {
 
             noteList = (NoteList) in.readObject();
         } catch (Exception e) {
-            Toast.makeText(context, e.toString(), Toast.LENGTH_LONG).show();
+            Toast.makeText(context, filename + " not found, creating a new file", Toast.LENGTH_LONG).show();
         }
 
         if(noteList == null){
@@ -48,13 +51,13 @@ public class NoteIO {
         }
     }
 
-    public static void backup(Context context){
+    public static void exportBackup(Context context){
         try {
-            DateFormat dtf = new SimpleDateFormat("MM/dd/yy");
+            DateFormat dtf = new SimpleDateFormat("MM_dd_yy", Locale.US);
             Date today = new Date();
 
             String stamp = dtf.format(today);
-            String bup_name = "jot_backup " + stamp + ".txt";
+            String bup_name = "jot_backup_" + stamp + ".txt";
 
             //find downloads directory, create new file there
             File dl_dir = Environment.getExternalStoragePublicDirectory(
@@ -66,13 +69,13 @@ public class NoteIO {
             FileWriter out = new FileWriter(bup);
 
             //iterate through each note and write it line by line
-            for(int i = 0; i < noteList.data.size(); i++){
-                Note note = noteList.get(i);
+            for(int i = 0; i < noteList.getLength(); i++){
+                Note note = noteList.getNote(i);
 
-                out.write(note.title+"\n");
+                out.write(note.getTitle()+"\n");
 
-                for(int j = 0; j < note.lines.size(); j++){
-                    out.write("- " + note.lines.get(j) + "\n");
+                for(int j = 0; j < note.getLength(); j++){
+                    out.write("- " + note.getLine(j) + "\n");
                 }
 
                 out.write("\n");
@@ -84,6 +87,33 @@ public class NoteIO {
                     Toast.LENGTH_SHORT).show();
         } catch (Throwable t){
             Toast.makeText(context, t.toString(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    public static void importBackup(Context context, String file_path){
+        try {
+            System.out.println(file_path);
+            File file = new File(file_path);
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+
+            String read_line;
+
+            //append the file data to the current noteList
+            while((read_line = reader.readLine()) != null){
+                if(read_line.startsWith("- ")){
+                    String content = read_line.substring(2);
+                    noteList.getLast().addLine(content);
+                } else if(!read_line.isEmpty()){
+                    noteList.newNote();
+                    noteList.getLast().setTitle(read_line);
+                }
+            }
+
+            Toast.makeText(context, file_path + " imported",
+                    Toast.LENGTH_SHORT).show();
+        } catch (Throwable t){
+            Toast.makeText(context, t.toString(), Toast.LENGTH_LONG).show();
+            t.printStackTrace();
         }
     }
 }

@@ -15,8 +15,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 
-import java.util.List;
-
 public class NoteEditActivity extends AppCompatActivity {
     TextInputEditText TitleInput;
 
@@ -32,17 +30,11 @@ public class NoteEditActivity extends AppCompatActivity {
         TitleInput = findViewById(R.id.TitleInput);
         LineRecycler = findViewById(R.id.LineRecycler);
 
-        //load a note into the view if one was sent by NoteSelectActivity
-        Note note = (Note) getIntent().getSerializableExtra("NoteOpened");
-
-        if(note != null) {
-            TitleInput.setText(note.title);
-        } else {
-            note = NoteIO.noteList.addNew();
-        }
+        //load the selected note into the view
+        TitleInput.setText(NoteIO.noteList.getSelected().getTitle());
 
         //configure adapter and misc for lines recycler
-        LineAdapter = new NoteEditAdapter(this, note);
+        LineAdapter = new NoteEditAdapter(this);
 
         //dragging items up/down rearranges them, left/right deletes them
         ItemTouchHelper itHelper = new ItemTouchHelper(
@@ -52,47 +44,27 @@ public class NoteEditActivity extends AppCompatActivity {
                 public boolean onMove(@NonNull RecyclerView recycler,
                                       @NonNull RecyclerView.ViewHolder viewHolder,
                                       @NonNull RecyclerView.ViewHolder target) {
+                    //getNote to and from positions and do the move
                     int fromPos = viewHolder.getAdapterPosition();
                     int toPos = target.getAdapterPosition();
+                    NoteIO.noteList.getSelected().moveLine(fromPos, toPos);
 
-                    List<String> lines = LineAdapter.note.lines;
-
-                    //remove the variable at fromPos, saving it
-                    String fromLine = lines.get(fromPos);
-                    lines.remove(fromPos);
-
-                    int size = lines.size();
-
-                    //duplicate the item at the end
-                    String last = String.copyValueOf(lines.get(size-1).toCharArray());
-                    lines.add(last);
-
-                    //move each item after toPos down 1 in the array
-                    for(int i = size-1; i > toPos; i--){
-                        String next = lines.get(i-1);
-                        lines.set(i, next);
-                    }
-
-                    //there are now two instances of variable at toPos;
-                    //insert the variable from fromPos at toPos
-                    lines.set(toPos, fromLine);
-
-                    //notify the adapter, return true for item successfully moved
                     LineAdapter.notifyDataSetChanged();
                     return true;
                 }
 
                 @Override
                 public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-                    //remove the item and notify the adapter
+                    //removeNote the item and notify the adapter
                     int pos = viewHolder.getAdapterPosition();
-                    LineAdapter.note.lines.remove(pos);
+                    NoteIO.noteList.getSelected().removeLine(pos);
+
                     LineAdapter.notifyItemRemoved(pos);
                 }
             });
 
         //attach the essentials, including itemTouchHelper and the adapter
-        LineRecycler.setLayoutManager( new LinearLayoutManager(getApplicationContext()));
+        LineRecycler.setLayoutManager(new LinearLayoutManager(getApplicationContext()));
         LineRecycler.setItemAnimator(new DefaultItemAnimator());
 
         itHelper.attachToRecyclerView(LineRecycler);
@@ -120,16 +92,24 @@ public class NoteEditActivity extends AppCompatActivity {
         NewLine.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
                 //add an entry and update the adapter
-                LineAdapter.note.lines.add("");
-                System.out.println(LineAdapter.note.lines.size());
+                NoteIO.noteList.getSelected().newLine();
                 LineAdapter.notifyDataSetChanged();
+                LineRecycler.scrollToPosition(LineAdapter.getItemCount()-1);
             }
         });
     }
 
+    @Override
+    public void onDestroy(){
+        save();
+        super.onDestroy();
+    }
+
     void save(){
         //update the note title based on text entry and save with NoteIO
-        LineAdapter.note.title = TitleInput.getText().toString();
+        NoteIO.noteList.getSelected().setTitle(TitleInput.getText().toString());
         NoteIO.saveAll(this);
     }
+
+
 }

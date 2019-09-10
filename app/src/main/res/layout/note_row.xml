@@ -10,18 +10,16 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/LineText"
-        android:layout_marginStart="20dp"
-        android:layout_marginLeft="20dp"
+        android:layout_marginStart="30dp"
         android:singleLine="true" />
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/Bullet"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="5dp"
-        android:layout_marginLeft="5dp"
+        android:layout_marginStart="8dp"
         android:layout_marginTop="15dp"
         app:backgroundTint="#283061"
-        app:fabCustomSize="10dp" />
+        app:fabCustomSize="15dp" />
 
 </RelativeLayout>

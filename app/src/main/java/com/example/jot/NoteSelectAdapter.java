@@ -1,7 +1,5 @@
 package com.example.jot;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +11,7 @@ public class NoteSelectAdapter extends
         RecyclerView.Adapter<NoteSelectAdapter.ViewHolder> {
     public interface OnNoteClickListener {
         //interface for listening to clicks
-        void onNoteClick(Note note);
+        void onNoteClick(int note_id);
     }
 
     private OnNoteClickListener listener;
@@ -33,51 +31,25 @@ public class NoteSelectAdapter extends
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         //fetch note from list; set the holder's title and lines
-        final Note note = NoteIO.noteList.get(position);
         final int pos = position;
 
-        String line0 = note.lines.size() > 0 ? note.lines.get(0) : "";
+        Note note = NoteIO.noteList.getNote(pos);
+        String line0 = note.getLength() > 0 ? note.getLine(0) : "";
 
-        holder.title.setText(note.title);
+        holder.title.setText(note.getTitle());
         holder.first_line.setText(line0);
 
         holder.itemView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                listener.onNoteClick(note);
-            }
-        });
-
-        holder.itemView.setOnLongClickListener(new View.OnLongClickListener(){
-            @Override
-            public boolean onLongClick(View v){
-                AlertDialog deleteAsk = new AlertDialog.Builder(holder.itemView.getContext())
-                        .setTitle("Confirm Delete")
-                        .setMessage("Do you want to delete '" + note.title + "'?")
-                        .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                NoteIO.noteList.remove(pos);
-                                NoteIO.saveAll(holder.itemView.getContext());
-
-                                notifyItemRemoved(pos);
-
-                                dialogInterface.dismiss();
-                            }
-                        })
-                        .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override public void onClick(DialogInterface d, int i) { d.dismiss(); }
-                        })
-                        .create();
-                deleteAsk.show();
-                return true;
+                listener.onNoteClick(pos);
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return NoteIO.noteList.data.size();
+        return NoteIO.noteList.getLength();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

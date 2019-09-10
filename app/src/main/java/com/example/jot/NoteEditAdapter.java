@@ -13,33 +13,32 @@ import androidx.recyclerview.widget.RecyclerView;
 public class NoteEditAdapter extends RecyclerView.Adapter<NoteEditAdapter.ViewHolder> {
     private LayoutInflater inflater;
 
-    public Note note;
-
-    public NoteEditAdapter(Context ctx, Note note) {
+    public NoteEditAdapter(Context ctx) {
         inflater = LayoutInflater.from(ctx);
-        this.note = note;
     }
 
     @Override
     public NoteEditAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         //set the xml formatting of the Recycler's rows to note_row
         View itemView = inflater.inflate(R.layout.note_row, parent, false);
+
         return new ViewHolder(itemView);
     }
 
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
         //fetch note from list; set the holder's LineText entry
-        String content_str = note.lines.get(position);
+        String content_str = NoteIO.noteList.getSelected().getLine(position);
         holder.LineText.setText(content_str);
+        holder.LineText.requestFocus();
     }
 
     @Override
     public int getItemCount() {
-        return note.lines.size();
+        return NoteIO.noteList.getSelected().getLength();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder {
+    public class ViewHolder extends RecyclerView.ViewHolder /*implements View.OnFocusChangeListener */ {
         protected EditText LineText;
 
         public ViewHolder(View view) {
@@ -48,16 +47,13 @@ public class NoteEditAdapter extends RecyclerView.Adapter<NoteEditAdapter.ViewHo
             //add a text change listener to the line text
             LineText = view.findViewById(R.id.LineText);
             LineText.addTextChangedListener(new TextWatcher() {
-                @Override
-                public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
-                @Override
-                public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+                @Override public void beforeTextChanged(CharSequence s, int i, int j, int k) {}
+                @Override public void onTextChanged(CharSequence s, int i, int j, int k){}
 
                 @Override
                 public void afterTextChanged(Editable s) {
                     //update the note when the text is changed
-                    int position = getAdapterPosition();
-                    note.lines.set(position, s.toString());
+                    NoteIO.noteList.getSelected().setLine(getAdapterPosition(), s.toString());
                 }
             });
         }
