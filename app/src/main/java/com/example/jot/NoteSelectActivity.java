@@ -5,11 +5,8 @@ import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
 import android.os.Bundle;
-import android.os.FileUtils;
 import android.view.View;
-import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -25,12 +22,18 @@ public class NoteSelectActivity extends AppCompatActivity
     private static final int REQUEST_BACKUP_EXPORT = 101;
     private static final int REQUEST_BACKUP_IMPORT = 102;
 
-    private static final int REQUEST_CHOOSE_BACKUP_FILE = 103;
+    private NoteSelectAdapter NotesAdapter;
+
+    private NoteList noteList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note_select);
+
+        //start by loading in all the notes
+        NoteIO.setActivity(this);
+        noteList = NoteIO.load();
 
         //create notes recycler
         RecyclerView NotesRecycler = findViewById(R.id.NotesRecycler);
@@ -40,7 +43,36 @@ public class NoteSelectActivity extends AppCompatActivity
         NotesRecycler.setItemAnimator(new DefaultItemAnimator());
 
         //create a click event for each recycler note via an adapter
-        final NoteSelectAdapter NotesAdapter = new NoteSelectAdapter();
+        NotesAdapter = new NoteSelectAdapter(
+            new NoteSelectAdapter.NoteBindInterface() {
+                @Override
+                public void onBindNote(NoteSelectAdapter.ViewHolder holder, final int pos) {
+                    //fetch note from list; set the holder's title and lines
+                    Note note = noteList.getNote(pos);
+                    String line0 = note.getLength() > 0 ? note.getLine(0) : "";
+
+                    holder.title.setText(note.getTitle());
+                    holder.first_line.setText(line0);
+
+                    holder.itemView.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            //select this note
+                            noteList.selectNote(pos);
+
+                            //switch to the note edit activity
+                            Intent intent = new Intent(v.getContext(), NoteEditActivity.class);
+                            v.getContext().startActivity(intent);
+                        }
+                    });
+                }
+            },
+            new NoteSelectAdapter.NoteLengthInterface() {
+                @Override
+                public int getLength() {
+                    return noteList.getLength();
+                }
+            });
         NotesRecycler.setAdapter(NotesAdapter);
 
         //dragging items up/down rearranges them
@@ -55,13 +87,10 @@ public class NoteSelectActivity extends AppCompatActivity
                         int fromPos = viewHolder.getAdapterPosition();
                         int toPos = target.getAdapterPosition();
 
-                        NoteIO.noteList.moveNote(fromPos, toPos);
-                        NoteIO.saveAll(NoteSelectActivity.this);
+                        noteList.moveNote(fromPos, toPos);
+                        NoteIO.save(noteList);
 
                         NotesAdapter.notifyDataSetChanged();
-
-                        NoteIO.saveAll(NoteSelectActivity.this);
-
                         return true;
                     }
 
@@ -72,23 +101,21 @@ public class NoteSelectActivity extends AppCompatActivity
                         //prompt user, double-check if they want to delete
                         AlertDialog deleteAsk = new AlertDialog.Builder(NoteSelectActivity.this)
                                 .setTitle("Confirm Delete")
-                                .setMessage("Do you want to delete '" + NoteIO.noteList.getNote(pos).getTitle() + "'?")
+                                .setMessage("Do you want to delete '" + noteList.getNote(pos).getTitle() + "'?")
                                 .setPositiveButton("Delete", new DialogInterface.OnClickListener() {
                                     @Override
                                     public void onClick(DialogInterface dialogInterface, int i) {
                                         //remove the item and notify the adapter
-                                        NoteIO.noteList.removeNote(pos);
-                                        NoteIO.saveAll(NoteSelectActivity.this);
+                                        noteList.removeNote(pos);
+                                        NoteIO.save(noteList);
 
                                         NotesAdapter.notifyItemRemoved(pos);
-
                                         dialogInterface.dismiss();
                                     }
                                 })
                                 .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
                                     @Override public void onClick(DialogInterface dialogInterface, int i) {
                                         NotesAdapter.notifyDataSetChanged();
-
                                         dialogInterface.dismiss();
                                     }
                                 })
@@ -103,9 +130,9 @@ public class NoteSelectActivity extends AppCompatActivity
         NewNote.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view){
-                NoteIO.noteList.newNote();
-                NoteIO.noteList.selectNote(NoteIO.noteList.getLength()-1);
-                NoteIO.saveAll(NoteSelectActivity.this);
+                noteList.newNote();
+                noteList.selectNote(noteList.getLength()-1);
+                NoteIO.save(noteList);
 
                 //switch to the main activity (edit note)
                 Intent intent = new Intent(NoteSelectActivity.this,
@@ -141,51 +168,40 @@ public class NoteSelectActivity extends AppCompatActivity
                 backupAsk.show();
             }
         });
-
-        //finish by loading in all the notes again
-        NoteIO.loadAll(this);
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] p, @NonNull int[] res){
-        //process requests to import/export external files
         if(requestCode == REQUEST_BACKUP_EXPORT &&
            res[0] == PackageManager.PERMISSION_GRANTED){
+
             //back up the notes if you got permission for external file saving
-            NoteIO.exportBackup(NoteSelectActivity.this);
+            NoteIO.exportBackup(noteList);
 
         } else if(requestCode == REQUEST_BACKUP_IMPORT &&
                 res[0] == PackageManager.PERMISSION_GRANTED){
-            //ask the user to choose a file
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("*/*");
-            intent.addCategory(Intent.CATEGORY_OPENABLE);
 
-            try{
-                startActivityForResult(
-                        Intent.createChooser(intent, "Select a File to Upload"),
-                        REQUEST_CHOOSE_BACKUP_FILE);
-            } catch (android.content.ActivityNotFoundException e){
-                Toast.makeText(this, "No file manager found; please install one",
-                        Toast.LENGTH_SHORT).show();
-            }
-        }
-    }
+            //fetch all backup names and ask user to pick one
+            final String[] options = NoteIO.getBackupNames();
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        //if a backup file was selected, process it
-        if(requestCode == REQUEST_CHOOSE_BACKUP_FILE && resultCode == RESULT_OK){
-            Uri file_uri = data.getData();
-            String file_path = file_uri.getEncodedPath();
+            AlertDialog backupAsk = new AlertDialog.Builder(NoteSelectActivity.this)
+                    .setTitle("Choose a Backup File")
+                    .setItems(options, new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            noteList = NoteIO.importBackup(options[i]);
+                            NoteIO.save(noteList);
 
-            NoteIO.importBackup(this, file_path);
+                            NotesAdapter.notifyDataSetChanged();
+                        }
+                    }).create();
+            backupAsk.show();
         }
     }
 
     @Override
     public void onDestroy(){
-        NoteIO.saveAll(this);
+        NoteIO.save(noteList);
         super.onDestroy();
     }
 }

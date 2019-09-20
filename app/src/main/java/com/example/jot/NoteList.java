@@ -50,6 +50,8 @@ public class NoteList implements Serializable {
     public Note getLast(){ return getNote(getLength() - 1); }
 
     public void print(){
+        System.out.println("Selected note: " + selected_id);
+
         for(int i = 0; i < getLength(); i++){
             System.out.println(getNote(i).getTitle() + " lines: " +  getNote(i).getLength());
         }

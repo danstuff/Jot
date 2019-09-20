@@ -1,6 +1,5 @@
 package com.example.jot;
 
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,6 +9,22 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class NoteSelectAdapter extends
         RecyclerView.Adapter<NoteSelectAdapter.ViewHolder> {
+    public interface NoteBindInterface{
+        void onBindNote(ViewHolder holder, final int position);
+    }
+
+    public interface NoteLengthInterface{
+        int getLength();
+    }
+
+    private NoteBindInterface bindInterface;
+    private NoteLengthInterface lengthInterface;
+
+    public NoteSelectAdapter(NoteBindInterface bi, NoteLengthInterface le) {
+        bindInterface = bi;
+        lengthInterface = le;
+    }
+
     @Override
     public ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View itemView = LayoutInflater.from(parent.getContext()).
@@ -19,32 +34,13 @@ public class NoteSelectAdapter extends
     }
 
     @Override
-    public void onBindViewHolder(final ViewHolder holder, int position) {
-        //fetch note from list; set the holder's title and lines
-        final int pos = position;
-
-        Note note = NoteIO.noteList.getNote(pos);
-        String line0 = note.getLength() > 0 ? note.getLine(0) : "";
-
-        holder.title.setText(note.getTitle());
-        holder.first_line.setText(line0);
-
-        holder.itemView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //select this note
-                NoteIO.noteList.selectNote(pos);
-
-                //switch to the note edit activity
-                Intent intent = new Intent(v.getContext(), NoteEditActivity.class);
-                v.getContext().startActivity(intent);
-            }
-        });
+    public void onBindViewHolder(ViewHolder holder, int position) {
+        bindInterface.onBindNote(holder, position);
     }
 
     @Override
     public int getItemCount() {
-        return NoteIO.noteList.getLength();
+        return lengthInterface.getLength();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {

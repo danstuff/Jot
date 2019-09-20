@@ -14,7 +14,6 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 public class NoteEditActivity extends AppCompatActivity {
@@ -23,14 +22,22 @@ public class NoteEditActivity extends AppCompatActivity {
     RecyclerView LineRecycler;
     NoteEditAdapter LineAdapter;
 
+    NoteList noteList;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note_edit);
 
+        //start by loading in all the notes
+        NoteIO.setActivity(this);
+        noteList = NoteIO.load();
+
+        noteList.print();
+
         //create title label, set it to the note's title, add a listener for updates
         TitleInput = findViewById(R.id.TitleInput);
-        TitleInput.setText(NoteIO.noteList.getSelected().getTitle());
+        TitleInput.setText(noteList.getSelected().getTitle());
 
         TitleInput.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int i, int j, int k) {}
@@ -38,8 +45,8 @@ public class NoteEditActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                NoteIO.noteList.getSelected().setTitle(TitleInput.getText().toString());
-                NoteIO.saveAll(NoteEditActivity.this);
+                noteList.getSelected().setTitle(TitleInput.getText().toString());
+                NoteIO.softSave(noteList);
             }
         });
 
@@ -47,7 +54,29 @@ public class NoteEditActivity extends AppCompatActivity {
         LineRecycler = findViewById(R.id.LineRecycler);
 
         //create/attach an adapter for the recycler
-        LineAdapter = new NoteEditAdapter(this);
+        LineAdapter = new NoteEditAdapter(
+            new NoteEditAdapter.NoteBindInterface() {
+                @Override
+                public void onBindNote(NoteEditAdapter.ViewHolder holder, int pos) {
+                    //fetch note from list; set the holder's LineText entry
+                    String content_str = noteList.getSelected().getLine(pos);
+                    holder.LineText.setText(content_str);
+                }
+            },
+            new NoteEditAdapter.NoteUpdateInterface() {
+                @Override
+                public void onLineUpdate(NoteEditAdapter.ViewHolder holder, Editable edit) {
+                    //update the note when the text is changed
+                    noteList.getSelected().setLine(holder.getAdapterPosition(), edit.toString());
+                    NoteIO.softSave(noteList);
+                }
+            },
+            new NoteEditAdapter.NoteLengthInterface(){
+                @Override
+                public int getLength() {
+                    return noteList.getSelected().getLength();
+                }
+            });
         LineRecycler.setAdapter(LineAdapter);
 
         //attach a generic linear layout manager and item animator
@@ -66,8 +95,8 @@ public class NoteEditActivity extends AppCompatActivity {
                     int fromPos = viewHolder.getAdapterPosition();
                     int toPos = target.getAdapterPosition();
 
-                    NoteIO.noteList.getSelected().moveLine(fromPos, toPos);
-                    NoteIO.saveAll(NoteEditActivity.this);
+                    noteList.getSelected().moveLine(fromPos, toPos);
+                    NoteIO.softSave(noteList);
 
                     LineAdapter.notifyDataSetChanged();
                     return true;
@@ -78,8 +107,8 @@ public class NoteEditActivity extends AppCompatActivity {
                     //removeNote the item and notify the adapter
                     int pos = viewHolder.getAdapterPosition();
 
-                    NoteIO.noteList.getSelected().removeLine(pos);
-                    NoteIO.saveAll(NoteEditActivity.this);
+                    noteList.getSelected().removeLine(pos);
+                    NoteIO.softSave(noteList);
 
                     LineAdapter.notifyItemRemoved(pos);
                 }
@@ -100,11 +129,10 @@ public class NoteEditActivity extends AppCompatActivity {
         NewLine.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
                 //add an entry and update the adapter
-                NoteIO.noteList.getSelected().newLine();
-                NoteIO.saveAll(NoteEditActivity.this);
+                noteList.getSelected().newLine();
+                NoteIO.softSave(noteList);
 
                 LineAdapter.notifyDataSetChanged();
-
                 LineRecycler.scrollToPosition(LineAdapter.getItemCount()-1);
             }
         });
@@ -112,7 +140,7 @@ public class NoteEditActivity extends AppCompatActivity {
 
     @Override
     public void onDestroy(){
-        NoteIO.saveAll(this);
+        NoteIO.save(noteList);
         super.onDestroy();
     }
 }

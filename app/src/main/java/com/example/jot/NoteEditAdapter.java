@@ -1,6 +1,5 @@
 package com.example.jot;
 
-import android.content.Context;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -8,34 +7,48 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class NoteEditAdapter extends RecyclerView.Adapter<NoteEditAdapter.ViewHolder> {
-    private LayoutInflater inflater;
+    public interface NoteBindInterface {
+        void onBindNote(ViewHolder holder, int pos);
+    }
 
-    public NoteEditAdapter(Context ctx) {
-        inflater = LayoutInflater.from(ctx);
+    public interface NoteUpdateInterface {
+        void onLineUpdate(ViewHolder holder, Editable s);
+    }
+
+    public interface NoteLengthInterface{
+        int getLength();
+    }
+
+    private NoteBindInterface bindInterface;
+    private NoteUpdateInterface updateInterface;
+    private NoteLengthInterface lengthInterface;
+
+    public NoteEditAdapter(NoteBindInterface bi, NoteUpdateInterface up, NoteLengthInterface le) {
+        bindInterface = bi;
+        updateInterface = up;
+        lengthInterface = le;
     }
 
     @Override
     public NoteEditAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         //set the xml formatting of the Recycler's rows to note_row
-        View itemView = inflater.inflate(R.layout.note_row, parent, false);
-
+        View itemView = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.note_row, parent, false);
         return new ViewHolder(itemView);
     }
 
     @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        //fetch note from list; set the holder's LineText entry
-        String content_str = NoteIO.noteList.getSelected().getLine(position);
-        holder.LineText.setText(content_str);
-        holder.LineText.requestFocus();
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        bindInterface.onBindNote(holder, position);
     }
 
     @Override
     public int getItemCount() {
-        return NoteIO.noteList.getSelected().getLength();
+        return lengthInterface.getLength();
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder /*implements View.OnFocusChangeListener */ {
@@ -52,9 +65,7 @@ public class NoteEditAdapter extends RecyclerView.Adapter<NoteEditAdapter.ViewHo
 
                 @Override
                 public void afterTextChanged(Editable s) {
-                    //update the note when the text is changed
-                    NoteIO.noteList.getSelected().setLine(getAdapterPosition(), s.toString());
-                    NoteIO.saveAll(LineText.getContext());
+                    updateInterface.onLineUpdate(ViewHolder.this, s);
                 }
             });
         }
