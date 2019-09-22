@@ -1,6 +1,5 @@
 package com.example.jot;
 
-import android.content.Context;
 import android.os.Environment;
 import android.os.Handler;
 import android.view.Gravity;
@@ -13,6 +12,8 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.InputStream;
@@ -24,10 +25,12 @@ import java.util.Date;
 import java.util.Locale;
 
 public class NoteIO {
-    private static final String FILENAME = "JotNotes.dat";
-    private static final int SOFT_SAVE_WAIT_MS = 2500;
+    private static final String FILENAME0 = "JotNotes0.dat";
+    private static final String FILENAME1 = "JotNotes1.dat";
 
-    private static boolean already_saving = false;
+    private static final int SOFT_SAVE_WAIT_MS = 5000;
+
+    private static boolean already_saved = false;
 
     private static AppCompatActivity activity;
 
@@ -35,20 +38,34 @@ public class NoteIO {
         NoteIO.activity = activity;
     }
 
-    public static NoteList load() {
+    private static NoteList loadF(String filename){
         NoteList noteList = null;
 
         try {
-            InputStream fileIn = activity.openFileInput(FILENAME);
+            //open a file input stream and read the serializable object
+            InputStream fileIn = activity.openFileInput(filename);
             ObjectInputStream in = new ObjectInputStream(fileIn);
 
             noteList = (NoteList) in.readObject();
         } catch (Exception e) {
-            Toast.makeText(activity, e.toString(), Toast.LENGTH_LONG).show();
+            e.printStackTrace();
         }
 
+        return noteList;
+    }
+
+    public static NoteList load() {
+        NoteList noteList = loadF(FILENAME0);
+
         if(noteList == null){
-            noteList = new NoteList();
+            noteList = loadF(FILENAME1);
+
+            if(noteList == null){
+                noteList = new NoteList();
+                Toast.makeText(activity, "No save file found", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(activity, "Secondary save file used", Toast.LENGTH_SHORT).show();
+            }
         }
 
         return noteList;
@@ -56,42 +73,75 @@ public class NoteIO {
 
     public static void save(NoteList noteList){
         try {
-            ObjectOutputStream out = new ObjectOutputStream(
-                    activity.openFileOutput(FILENAME, 0));
+            //copy the contents of save0 into save1
+            FileInputStream sec_in = activity.openFileInput(FILENAME0);
+            FileOutputStream sec_out = activity.openFileOutput(FILENAME1, 0);
 
-            out.writeObject(noteList);
-            out.close();
+            byte[] copy_buffer = new byte[1024];
+            int len;
 
-            LayoutInflater inf = activity.getLayoutInflater();
-            View layout = inf.inflate(R.layout.save_toast,
-                    (ViewGroup) activity.findViewById(R.id.saveToast));
+            while((len = sec_in.read(copy_buffer)) > 0){
+                sec_out.write(copy_buffer, 0, len);
+            }
 
-            Toast notif = new Toast(activity);
-
-            notif.setView(layout);
-            notif.setDuration(Toast.LENGTH_SHORT);
-            notif.setGravity(Gravity.TOP | Gravity.RIGHT, 8, 8);
-            notif.show();
+            sec_in.close();
+            sec_out.close();
 
         } catch (Throwable t){
             Toast.makeText(activity, t.toString(), Toast.LENGTH_LONG).show();
         }
+
+        try {
+            //overwrite the original save file
+            ObjectOutputStream out = new ObjectOutputStream(
+                    activity.openFileOutput(FILENAME0, 0));
+
+            out.writeObject(noteList);
+            out.close();
+        } catch (Throwable t){
+            Toast.makeText(activity, t.toString(), Toast.LENGTH_LONG).show();
+        }
+
+        //display a toast in the corner to indicate saving
+        Toast notif = new Toast(activity);
+
+        //add a nice format to the save toast
+        LayoutInflater inf = activity.getLayoutInflater();
+        View layout = inf.inflate(R.layout.save_toast,
+                (ViewGroup) activity.findViewById(R.id.saveToast));
+        notif.setView(layout);
+
+        //setup position and duration
+        notif.setDuration(Toast.LENGTH_SHORT);
+        notif.setGravity(Gravity.TOP | Gravity.RIGHT, 8, 8);
+
+        //display the toast
+        notif.show();
     }
 
-    public static void softSave(final NoteList noteList) {
+    public static void softSave(NoteList noteList) {
         //avoid spamming the save when this function is polled frequently
-        if (already_saving) { return; }
+        if (already_saved) { return; }
 
-        already_saving = true;
+        save(noteList);
+        already_saved = true;
 
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
-            @Override public void run() {
-                save(noteList);
-
-                already_saving = false;
-            }
+            @Override public void run() { already_saved = false; }
         }, SOFT_SAVE_WAIT_MS);
+    }
+
+    private static File getBackupFolder(){
+        //find documents directory, create new file in a subfolder
+        File home_dir = Environment.getExternalStoragePublicDirectory(
+                Environment.DIRECTORY_DOCUMENTS);
+
+        //create directories if they don't exist
+        File bup_folder = new File(home_dir.getPath() + File.separator + "jot_backups");
+        bup_folder.mkdirs();
+
+        return bup_folder;
     }
 
     public static void exportBackup(NoteList noteList){
@@ -102,14 +152,7 @@ public class NoteIO {
             String stamp = dtf.format(today);
             String bup_name = stamp + ".txt";
 
-            //find downloads directory, create new file in a subfolder
-            File dl_dir = Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DOWNLOADS);
-
-            File bup_folder = new File(dl_dir.getPath() + "\\jot_backups\\");
-            bup_folder.mkdirs();
-
-            File bup =  new File(bup_folder, bup_name);
+            File bup =  new File(getBackupFolder(), bup_name);
 
             //create output stream
             FileWriter out = new FileWriter(bup);
@@ -118,7 +161,15 @@ public class NoteIO {
             for(int i = 0; i < noteList.getLength(); i++){
                 Note note = noteList.getNote(i);
 
-                out.write(note.getTitle()+"\n");
+                //make sure note titles don't begin with dashes to prevent errors
+                String title = note.getTitle();
+
+                while (title.length() > 0 && title.charAt(0) == '-'){
+                    title = title.substring(1);
+                }
+
+                //output the fixed title
+                out.write(title+"\n");
 
                 for(int j = 0; j < note.getLength(); j++){
                     out.write("- " + note.getLine(j) + "\n");
@@ -129,7 +180,7 @@ public class NoteIO {
 
             out.close();
 
-            Toast.makeText(activity, bup_name + " saved in Downloads",
+            Toast.makeText(activity, bup_name + " saved in Documents",
                     Toast.LENGTH_SHORT).show();
         } catch (Throwable t){
             Toast.makeText(activity, t.toString(), Toast.LENGTH_LONG).show();
@@ -140,13 +191,7 @@ public class NoteIO {
         NoteList noteList = new NoteList();
 
         try {
-            File dl_dir = Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DOWNLOADS);
-
-            File bup_folder = new File(dl_dir.getPath() + "\\jot_backups\\");
-            bup_folder.mkdirs();
-
-            File bup =  new File(bup_folder, filename);
+            File bup =  new File(getBackupFolder(), filename);
             BufferedReader reader = new BufferedReader(new FileReader(bup));
 
             String read_line;
@@ -154,9 +199,11 @@ public class NoteIO {
             //append the file data to the current noteList
             while((read_line = reader.readLine()) != null){
                 if(read_line.startsWith("- ")){
+                    //if line begins with a dash, add it as a note line
                     String content = read_line.substring(2);
                     noteList.getLast().addLine(content);
                 } else if(!read_line.isEmpty()){
+                    //if the line isn't empty but has no dash it's a note name
                     noteList.newNote();
                     noteList.getLast().setTitle(read_line);
                 }
@@ -176,13 +223,7 @@ public class NoteIO {
         String[] bup_names = new String[0];
 
         try {
-            File dl_dir = Environment.getExternalStoragePublicDirectory(
-                    Environment.DIRECTORY_DOWNLOADS);
-
-            File bup_folder = new File(dl_dir.getPath() + "\\jot_backups\\");
-            bup_folder.mkdirs();
-
-            File[] bup_files = bup_folder.listFiles();
+            File[] bup_files = getBackupFolder().listFiles();
 
             bup_names = new String[bup_files.length];
             for(int i = 0; i < bup_files.length; i++){

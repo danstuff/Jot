@@ -33,8 +33,6 @@ public class NoteEditActivity extends AppCompatActivity {
         NoteIO.setActivity(this);
         noteList = NoteIO.load();
 
-        noteList.print();
-
         //create title label, set it to the note's title, add a listener for updates
         TitleInput = findViewById(R.id.TitleInput);
         TitleInput.setText(noteList.getSelected().getTitle());
@@ -119,8 +117,8 @@ public class NoteEditActivity extends AppCompatActivity {
         AppCompatButton ShowNoteSelect = findViewById(R.id.ShowNoteSelect);
         ShowNoteSelect.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view){
-                //switch to the notes list
-                startActivity(new Intent(getApplicationContext(), NoteSelectActivity.class));
+                //return to the notes list
+                finish();
             }
         });
 
@@ -130,7 +128,6 @@ public class NoteEditActivity extends AppCompatActivity {
             @Override public void onClick(View view) {
                 //add an entry and update the adapter
                 noteList.getSelected().newLine();
-                NoteIO.softSave(noteList);
 
                 LineAdapter.notifyDataSetChanged();
                 LineRecycler.scrollToPosition(LineAdapter.getItemCount()-1);

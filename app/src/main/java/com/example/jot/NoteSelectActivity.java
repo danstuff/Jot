@@ -107,6 +107,7 @@ public class NoteSelectActivity extends AppCompatActivity
                                     public void onClick(DialogInterface dialogInterface, int i) {
                                         //remove the item and notify the adapter
                                         noteList.removeNote(pos);
+
                                         NoteIO.save(noteList);
 
                                         NotesAdapter.notifyItemRemoved(pos);
@@ -132,6 +133,7 @@ public class NoteSelectActivity extends AppCompatActivity
             public void onClick(View view){
                 noteList.newNote();
                 noteList.selectNote(noteList.getLength()-1);
+
                 NoteIO.save(noteList);
 
                 //switch to the main activity (edit note)
@@ -190,7 +192,9 @@ public class NoteSelectActivity extends AppCompatActivity
                         @Override
                         public void onClick(DialogInterface dialogInterface, int i) {
                             noteList = NoteIO.importBackup(options[i]);
+
                             NoteIO.save(noteList);
+                            noteList = NoteIO.load();
 
                             NotesAdapter.notifyDataSetChanged();
                         }
@@ -202,6 +206,10 @@ public class NoteSelectActivity extends AppCompatActivity
     @Override
     public void onDestroy(){
         NoteIO.save(noteList);
+
         super.onDestroy();
+
+        finish();
+        System.exit(0);
     }
 }
