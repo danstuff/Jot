@@ -1,7 +1,7 @@
 package com.example.jot;
 
-import android.content.Intent;
 import android.os.Bundle;
+import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -16,26 +16,36 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class NoteEditActivity extends AppCompatActivity {
-    TextInputEditText TitleInput;
+    public static final int AUTO_SAVE_INTERVAL_MS = 5000;
 
-    RecyclerView LineRecycler;
-    NoteEditAdapter LineAdapter;
+    private TextInputEditText TitleInput;
 
-    NoteList noteList;
+    private RecyclerView LineRecycler;
+    private NoteEditAdapter LineAdapter;
+
+    private NoteIO noteIO;
+
+    private Note note;
+
+    private Timer save_timer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note_edit);
 
-        //start by loading in all the notes
-        NoteIO.setActivity(this);
-        noteList = NoteIO.load();
+        noteIO = new NoteIO(this);
+
+        //import the note you selected in NoteSelectActivity
+        note = (Note) getIntent().getSerializableExtra(NoteSelectActivity.SELECTED_NOTE_DATA);
 
         //create title label, set it to the note's title, add a listener for updates
         TitleInput = findViewById(R.id.TitleInput);
-        TitleInput.setText(noteList.getSelected().getTitle());
+        TitleInput.setText(note.getTitle());
 
         TitleInput.addTextChangedListener(new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int i, int j, int k) {}
@@ -43,8 +53,7 @@ public class NoteEditActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                noteList.getSelected().setTitle(TitleInput.getText().toString());
-                NoteIO.softSave(noteList);
+                note.setTitle(TitleInput.getText().toString());
             }
         });
 
@@ -57,7 +66,7 @@ public class NoteEditActivity extends AppCompatActivity {
                 @Override
                 public void onBindNote(NoteEditAdapter.ViewHolder holder, int pos) {
                     //fetch note from list; set the holder's LineText entry
-                    String content_str = noteList.getSelected().getLine(pos);
+                    String content_str = note.getLine(pos).getContent();
                     holder.LineText.setText(content_str);
                 }
             },
@@ -65,14 +74,13 @@ public class NoteEditActivity extends AppCompatActivity {
                 @Override
                 public void onLineUpdate(NoteEditAdapter.ViewHolder holder, Editable edit) {
                     //update the note when the text is changed
-                    noteList.getSelected().setLine(holder.getAdapterPosition(), edit.toString());
-                    NoteIO.softSave(noteList);
+                    note.getLine(holder.getAdapterPosition()).setContent(edit.toString());
                 }
             },
             new NoteEditAdapter.NoteLengthInterface(){
                 @Override
                 public int getLength() {
-                    return noteList.getSelected().getLength();
+                    return note.getLineCount();
                 }
             });
         LineRecycler.setAdapter(LineAdapter);
@@ -93,8 +101,7 @@ public class NoteEditActivity extends AppCompatActivity {
                     int fromPos = viewHolder.getAdapterPosition();
                     int toPos = target.getAdapterPosition();
 
-                    noteList.getSelected().moveLine(fromPos, toPos);
-                    NoteIO.softSave(noteList);
+                    note.moveLine(fromPos, toPos);
 
                     LineAdapter.notifyDataSetChanged();
                     return true;
@@ -105,8 +112,7 @@ public class NoteEditActivity extends AppCompatActivity {
                     //removeNote the item and notify the adapter
                     int pos = viewHolder.getAdapterPosition();
 
-                    noteList.getSelected().removeLine(pos);
-                    NoteIO.softSave(noteList);
+                    note.removeLine(pos);
 
                     LineAdapter.notifyItemRemoved(pos);
                 }
@@ -127,17 +133,28 @@ public class NoteEditActivity extends AppCompatActivity {
         NewLine.setOnClickListener(new View.OnClickListener() {
             @Override public void onClick(View view) {
                 //add an entry and update the adapter
-                noteList.getSelected().newLine();
+                note.newLine();
 
                 LineAdapter.notifyDataSetChanged();
                 LineRecycler.scrollToPosition(LineAdapter.getItemCount()-1);
             }
         });
+
+        //start a timer that saves the note every 15 seconds
+        save_timer = new Timer();
+        save_timer.schedule(new TimerTask() {
+            @Override public void run() {
+                noteIO.save(note);
+            }
+        }, 0, AUTO_SAVE_INTERVAL_MS);
     }
 
     @Override
     public void onDestroy(){
-        NoteIO.save(noteList);
         super.onDestroy();
+
+        noteIO.save(note);
+
+        save_timer.cancel();
     }
 }
