@@ -191,10 +191,8 @@ public class NoteSelectActivity extends AppCompatActivity
     }
 
     @Override
-    public void onRequestPermissionsResult(int reqCode, @NonNull String[] p, @NonNull int[] res) {
-        if (reqCode == REQUEST_BACKUP_EXPORT &&
-                res[0] == PackageManager.PERMISSION_GRANTED) {
-
+    public void onRequestPermissionsResult(int c, @NonNull String[] p, @NonNull int[] r) {
+        if (c == REQUEST_BACKUP_EXPORT && r[0] == PackageManager.PERMISSION_GRANTED) {
             //back up the notes if you got permission for external file saving
             AsyncTask.execute(new Runnable() {
                 @Override public void run() {
@@ -202,9 +200,7 @@ public class NoteSelectActivity extends AppCompatActivity
                 }
             });
 
-        } else if (reqCode == REQUEST_BACKUP_IMPORT &&
-                res[0] == PackageManager.PERMISSION_GRANTED) {
-
+        } else if (c == REQUEST_BACKUP_IMPORT && r[0] == PackageManager.PERMISSION_GRANTED) {
             //fetch all backup names and ask user to pick one
             final String[] options = noteIO.getBackupNames();
 
