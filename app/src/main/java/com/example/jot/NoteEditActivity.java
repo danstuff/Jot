@@ -1,14 +1,10 @@
 package com.example.jot;
 
-import android.app.Activity;
-import android.app.Application;
 import android.os.Bundle;
-import android.os.Looper;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.recyclerview.widget.DefaultItemAnimator;
@@ -18,9 +14,6 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.textfield.TextInputEditText;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 public class NoteEditActivity extends AppCompatActivity {
     public static final int AUTO_SAVE_INTERVAL_MS = 10000;
 
@@ -29,9 +22,9 @@ public class NoteEditActivity extends AppCompatActivity {
     private RecyclerView LineRecycler;
     private NoteEditAdapter LineAdapter;
 
-    private NoteIO noteIO;
-
     private AutoInterval interval;
+
+    private NoteIO noteIO;
 
     private Note note;
     private NoteLine deletedLine;

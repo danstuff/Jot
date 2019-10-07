@@ -40,5 +40,4 @@ public class AutoInterval {
             timer_on = false;
         }
     }
-
 }

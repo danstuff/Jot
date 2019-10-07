@@ -27,7 +27,11 @@ public class NoteIO {
 
     public NoteIO(AppCompatActivity activity){ this.activity = activity; }
 
-    private Note load(String filename){
+    public String getFilename(int index){
+        return index + ".dat";
+    }
+
+    public Note load(String filename){
         Note note = null;
 
         try {
@@ -36,6 +40,8 @@ public class NoteIO {
             ObjectInputStream in = new ObjectInputStream(fileIn);
 
             note = (Note) in.readObject();
+
+            fileIn.close();
         } catch (FileNotFoundException e) {
             System.out.println("File " + filename + " doesn't exist, load ignored.");
         } catch (Exception e) {
@@ -49,7 +55,7 @@ public class NoteIO {
         NoteList noteList = new NoteList();
 
         for(int i = 0; i < 1000; i++){
-            Note note = load(i+".dat");
+            Note note = load(getFilename(i));
 
             if(note != null) { noteList.addNote(note); }
             else { break; }
@@ -66,13 +72,12 @@ public class NoteIO {
         try {
             //overwrite the original save file
             ObjectOutputStream out = new ObjectOutputStream(
-                    activity.openFileOutput(note.getFileIndex() + ".dat", 0));
+                    activity.openFileOutput(getFilename(note.getFileIndex()), 0));
 
             out.writeObject(note);
             out.close();
         } catch (Throwable t){
             t.printStackTrace();
-            Toast.makeText(activity, t.toString(), Toast.LENGTH_LONG).show();
         }
 
         //ensure the Toast runs on the UI thread
@@ -89,7 +94,12 @@ public class NoteIO {
             save(noteList.getNote(i));
         }
 
-       saveToast();
+        //ensure the Toast runs on the UI thread
+        activity.runOnUiThread(new Runnable() {
+            @Override public void run() {
+                saveToast();
+            }
+        });
     }
 
     public NoteList cycleList(NoteList noteList){
@@ -127,7 +137,7 @@ public class NoteIO {
             Date today = new Date();
 
             String stamp = dtf.format(today);
-            String bup_name = stamp + ".txt";
+            final String bup_name = stamp + ".txt";
 
             File bup =  new File(getBackupFolder(), bup_name);
 
@@ -157,15 +167,18 @@ public class NoteIO {
 
             out.close();
 
-            Toast.makeText(activity, bup_name + " saved in Documents",
-                    Toast.LENGTH_SHORT).show();
+            activity.runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    Toast.makeText(activity, bup_name + " saved in Documents",
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
         } catch (Throwable t){
             t.printStackTrace();
-            Toast.makeText(activity, t.toString(), Toast.LENGTH_LONG).show();
         }
     }
 
-    public NoteList importBackup(String filename){
+    public NoteList importBackup(final String filename){
         NoteList noteList = new NoteList();
 
         try {
@@ -185,32 +198,34 @@ public class NoteIO {
                     noteList.newNote().setTitle(read_line);
                 }
             }
-
-            Toast.makeText(activity, filename + " imported",
-                    Toast.LENGTH_SHORT).show();
+            activity.runOnUiThread(new Runnable() {
+                @Override public void run() {
+                    Toast.makeText(activity, filename + " imported",
+                            Toast.LENGTH_SHORT).show();
+                }
+            });
         } catch (Throwable t){
-            Toast.makeText(activity, t.toString(), Toast.LENGTH_LONG).show();
             t.printStackTrace();
         }
 
         return noteList;
     }
 
-    public void saveToast(){
+    private void saveToast(){
         //display a toast in the corner to indicate saving
-        Toast notif = new Toast(activity);
+        Toast notification = new Toast(activity);
 
         //add a nice format to the save toast
         LayoutInflater inf = activity.getLayoutInflater();
         View layout = inf.inflate(R.layout.save_toast,
                 (ViewGroup) activity.findViewById(R.id.saveToast));
-        notif.setView(layout);
+        notification.setView(layout);
 
         //setup position and duration
-        notif.setDuration(Toast.LENGTH_SHORT);
-        notif.setGravity(Gravity.TOP | Gravity.RIGHT, 8, 8);
+        notification.setDuration(Toast.LENGTH_SHORT);
+        notification.setGravity(Gravity.TOP | Gravity.END, 8, 8);
 
         //display the toast
-        notif.show();
+        notification.show();
     }
 }
