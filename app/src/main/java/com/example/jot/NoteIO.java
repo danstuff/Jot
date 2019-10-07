@@ -11,9 +11,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
-import java.io.FilenameFilter;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -36,6 +36,8 @@ public class NoteIO {
             ObjectInputStream in = new ObjectInputStream(fileIn);
 
             note = (Note) in.readObject();
+        } catch (FileNotFoundException e) {
+            System.out.println("File " + filename + " doesn't exist, load ignored.");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -43,7 +45,7 @@ public class NoteIO {
         return note;
     }
 
-    public NoteList loadAll() {
+    public NoteList loadList() {
         NoteList noteList = new NoteList();
 
         for(int i = 0; i < 1000; i++){
@@ -56,22 +58,8 @@ public class NoteIO {
         return noteList;
     }
 
-    public void saveToast(){
-        //display a toast in the corner to indicate saving
-        Toast notif = new Toast(activity);
-
-        //add a nice format to the save toast
-        LayoutInflater inf = activity.getLayoutInflater();
-        View layout = inf.inflate(R.layout.save_toast,
-                (ViewGroup) activity.findViewById(R.id.saveToast));
-        notif.setView(layout);
-
-        //setup position and duration
-        notif.setDuration(Toast.LENGTH_SHORT);
-        notif.setGravity(Gravity.TOP | Gravity.RIGHT, 8, 8);
-
-        //display the toast
-        notif.show();
+    public void delete(String filename){
+        activity.deleteFile(filename);
     }
 
     public void save(Note note){
@@ -95,13 +83,18 @@ public class NoteIO {
         });
     }
 
-    public void saveAll(NoteList noteList){
+    public void saveList(NoteList noteList){
         for(int i = 0; i < noteList.getNoteCount(); i++){
             noteList.getNote(i).setFileIndex(i);
             save(noteList.getNote(i));
         }
 
        saveToast();
+    }
+
+    public NoteList cycleList(NoteList noteList){
+        saveList(noteList);
+        return loadList();
     }
 
     private File getBackupFolder(){
@@ -201,5 +194,23 @@ public class NoteIO {
         }
 
         return noteList;
+    }
+
+    public void saveToast(){
+        //display a toast in the corner to indicate saving
+        Toast notif = new Toast(activity);
+
+        //add a nice format to the save toast
+        LayoutInflater inf = activity.getLayoutInflater();
+        View layout = inf.inflate(R.layout.save_toast,
+                (ViewGroup) activity.findViewById(R.id.saveToast));
+        notif.setView(layout);
+
+        //setup position and duration
+        notif.setDuration(Toast.LENGTH_SHORT);
+        notif.setGravity(Gravity.TOP | Gravity.RIGHT, 8, 8);
+
+        //display the toast
+        notif.show();
     }
 }

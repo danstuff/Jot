@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/colorBackground"
     tools:activity=".NoteSelectActivity">
 
     <include
@@ -23,7 +24,7 @@
         android:paddingEnd="0dp"
         android:elevation="8dp"
         android:background="@drawable/corner_button"
-        app:backgroundTint="#3F51B5"
+        app:backgroundTint="@color/colorPrimary"
         android:drawableStart="@android:drawable/ic_menu_edit" />
 
     <androidx.appcompat.widget.AppCompatButton
@@ -41,6 +42,6 @@
         android:minHeight="60dp"
         android:paddingStart="15dp"
         android:paddingEnd="0dp"
-        app:backgroundTint="#3F51B5" />
+        app:backgroundTint="@color/colorPrimary" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

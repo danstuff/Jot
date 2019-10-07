@@ -1,5 +1,7 @@
 package com.example.jot;
 
+import android.app.Activity;
+import android.app.Application;
 import android.os.Bundle;
 import android.os.Looper;
 import android.text.Editable;
@@ -20,7 +22,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class NoteEditActivity extends AppCompatActivity {
-    public static final int AUTO_SAVE_INTERVAL_MS = 5000;
+    public static final int AUTO_SAVE_INTERVAL_MS = 10000;
 
     private TextInputEditText TitleInput;
 
@@ -29,9 +31,10 @@ public class NoteEditActivity extends AppCompatActivity {
 
     private NoteIO noteIO;
 
-    private Note note;
+    private AutoInterval interval;
 
-    private Timer save_timer;
+    private Note note;
+    private NoteLine deletedLine;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,33 +93,30 @@ public class NoteEditActivity extends AppCompatActivity {
         LineRecycler.setItemAnimator(new DefaultItemAnimator());
 
         //dragging recycler items up/down rearranges them, left/right deletes them
-        ItemTouchHelper itHelper = new ItemTouchHelper(
-            new ItemTouchHelper.SimpleCallback(
-                    ItemTouchHelper.UP | ItemTouchHelper.DOWN, ItemTouchHelper.RIGHT) {
-                @Override
-                public boolean onMove(@NonNull RecyclerView recycler,
-                                      @NonNull RecyclerView.ViewHolder viewHolder,
-                                      @NonNull RecyclerView.ViewHolder target) {
-                    //getNote to and from positions and do the move
-                    int fromPos = viewHolder.getAdapterPosition();
-                    int toPos = target.getAdapterPosition();
+        ItemTouchHelper.SimpleCallback itCallback = ItemTouchUtil.make(this,
+                new ItemTouchUtil.Actions() {
+            @Override public void move(int fromPos, int toPos) {
+                note.moveLine(fromPos, toPos);
+                LineAdapter.notifyDataSetChanged();
+            }
 
-                    note.moveLine(fromPos, toPos);
+            @Override public String delete(int pos) {
+                deletedLine = note.getLine(pos);
+                note.removeLine(pos);
 
-                    LineAdapter.notifyDataSetChanged();
-                    return true;
-                }
+                LineAdapter.notifyItemRemoved(pos);
 
-                @Override
-                public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-                    //removeNote the item and notify the adapter
-                    int pos = viewHolder.getAdapterPosition();
+                return deletedLine.getContent();
+            }
 
-                    note.removeLine(pos);
+            @Override
+            public void undoDelete() {
+                note.addLine(deletedLine.getContent());
+                LineAdapter.notifyDataSetChanged();
+            }
+        });
 
-                    LineAdapter.notifyItemRemoved(pos);
-                }
-            });
+        ItemTouchHelper itHelper = new ItemTouchHelper(itCallback);
         itHelper.attachToRecyclerView(LineRecycler);
 
         //button to return to notes list
@@ -140,21 +140,32 @@ public class NoteEditActivity extends AppCompatActivity {
             }
         });
 
-        //start a timer that saves the note every 15 seconds
-        save_timer = new Timer();
-        save_timer.schedule(new TimerTask() {
-            @Override public void run() {
+        //start a timer that saves the note every 5 seconds
+        interval = new AutoInterval(new AutoInterval.Task() {
+            @Override
+            public void run() {
                 noteIO.save(note);
             }
-        }, 0, AUTO_SAVE_INTERVAL_MS);
+        }, AUTO_SAVE_INTERVAL_MS);
+        interval.start();
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        interval.start();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        noteIO.save(note);
+        interval.stop();
+    }
+    @Override
     public void onDestroy(){
         super.onDestroy();
-
         noteIO.save(note);
-
-        save_timer.cancel();
+        interval.stop();
     }
 }

@@ -5,14 +5,17 @@
     android:id="@+id/saveToast"
     android:layout_height="match_parent">
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <Button
         android:id="@+id/saveIcon"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="#00000000"
+        android:backgroundTint="#00000000"
         android:clickable="false"
-        app:backgroundTint="@color/colorPrimary"
-        app:fabCustomSize="45dp"
-        app:fabSize="normal"
-        app:maxImageSize="25dp"
-        app:srcCompat="@android:drawable/ic_menu_save" />
+        android:drawableStart="@android:drawable/ic_menu_save"
+        android:elevation="0dp"
+        android:shadowColor="#00000000"
+        android:shadowDx="0"
+        android:shadowDy="0"
+        android:shadowRadius="0" />
 </LinearLayout>

@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Looper;
 import android.view.View;
 
 import androidx.annotation.NonNull;
@@ -18,11 +17,13 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.snackbar.Snackbar;
+
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class NoteSelectActivity extends AppCompatActivity
-        implements ActivityCompat.OnRequestPermissionsResultCallback{
+        implements ActivityCompat.OnRequestPermissionsResultCallback {
     public static final int AUTO_LOAD_INTERVAL_MS = 15000;
 
     public static final String SELECTED_NOTE_DATA = "SelNoteData";
@@ -36,8 +37,9 @@ public class NoteSelectActivity extends AppCompatActivity
     private AlertUtil alertUtil;
 
     private NoteList noteList;
+    private Note deletedNote;
 
-    private Timer reload_timer;
+    private AutoInterval interval;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,7 +50,7 @@ public class NoteSelectActivity extends AppCompatActivity
         alertUtil = new AlertUtil(this);
 
         //start by loading in all the notes
-        noteList = noteIO.loadAll();
+        noteList = noteIO.loadList();
 
         //create notes recycler
         RecyclerView NotesRecycler = findViewById(R.id.NotesRecycler);
@@ -59,87 +61,70 @@ public class NoteSelectActivity extends AppCompatActivity
 
         //create a click event for each recycler note via an adapter
         NotesAdapter = new NoteSelectAdapter(
-            new NoteSelectAdapter.NoteBindInterface() {
-                @Override
-                public void onBindNote(NoteSelectAdapter.ViewHolder holder, final int pos) {
-                    //fetch note from list
-                    Note note = noteList.getNote(pos);
+                new NoteSelectAdapter.NoteBindInterface() {
+                    @Override
+                    public void onBindNote(NoteSelectAdapter.ViewHolder holder, final int pos) {
+                        //fetch note from list
+                        Note note = noteList.getNote(pos);
 
-                    //get the note's title and first line
-                    String title = note.getTitle();
-                    String line0 = note.getLineCount() > 0 ?
-                            note.getLine(0).getContent() : "";
+                        //get the note's title and first line
+                        String title = note.getTitle();
+                        String line0 = note.getLineCount() > 0 ?
+                                note.getLine(0).getContent() : "";
 
-                    //set the title and first line elements of the holder
-                    holder.title.setText(title);
-                    holder.first_line.setText(line0);
+                        //set the title and first line elements of the holder
+                        holder.title.setText(title);
+                        holder.first_line.setText(line0);
 
-                    //when clicked, open note to edit
-                    holder.itemView.setOnClickListener(new View.OnClickListener() {
-                        @Override public void onClick(View v){
-                            noteList = noteIO.loadAll();
-                            editNote(v, noteList.getNote(pos));
-                        }
-                    });
-                }
-            },
-            new NoteSelectAdapter.NoteLengthInterface() {
-                @Override
-                public int getLength() {
-                    return noteList.getNoteCount();
-                }
-            });
+                        //when clicked, open note to edit
+                        holder.itemView.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                noteList = noteIO.loadList();
+                                editNote(v, noteList.getNote(pos));
+                            }
+                        });
+                    }
+                },
+                new NoteSelectAdapter.NoteLengthInterface() {
+                    @Override
+                    public int getLength() {
+                        return noteList.getNoteCount();
+                    }
+                });
         NotesRecycler.setAdapter(NotesAdapter);
 
         //dragging items up/down rearranges them
-        ItemTouchHelper.SimpleCallback itCallback = new ItemTouchHelper.SimpleCallback(
-                ItemTouchHelper.UP | ItemTouchHelper.DOWN, ItemTouchHelper.RIGHT) {
-            @Override
-            public boolean onMove(@NonNull RecyclerView recycler,
-                                  @NonNull RecyclerView.ViewHolder viewHolder,
-                                  @NonNull RecyclerView.ViewHolder target) {
-                //getNote to and from positions and do the move
-                int fromPos = viewHolder.getAdapterPosition();
-                int toPos = target.getAdapterPosition();
-
-                //move the item and save
+        ItemTouchHelper.SimpleCallback itCallback = ItemTouchUtil.make(this,
+                new ItemTouchUtil.Actions() {
+            @Override public void move(int fromPos, int toPos) {
                 noteList.moveNote(fromPos, toPos);
-                noteIO.saveAll(noteList);
+                noteList = noteIO.cycleList(noteList);
 
                 NotesAdapter.notifyDataSetChanged();
-                return true;
+            }
+
+            @Override public String delete(int pos) {
+                deletedNote = noteList.getNote(pos);
+                noteList.removeNote(pos);
+
+                noteIO.delete(deletedNote.getFileIndex()+".dat");
+                noteList = noteIO.cycleList(noteList);
+
+                //notify the adapter
+                NotesAdapter.notifyItemRemoved(pos);
+
+                return deletedNote.getTitle();
             }
 
             @Override
-            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int i) {
-                final int pos = viewHolder.getAdapterPosition();
+            public void undoDelete() {
+                noteList.addNote(deletedNote);
+                noteList = noteIO.cycleList(noteList);
 
-                //prompt user, double-check if they want to delete
-                AlertDialog deleteAsk = alertUtil.make("Confirm Delete",
-                        "Do you want to delete '" + noteList.getNote(pos).getTitle() + "'?",
-
-                        "Delete", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                                //remove the item and save
-                                noteList.removeNote(pos);
-                                noteIO.saveAll(noteList);
-
-                                //notify the adapter
-                                NotesAdapter.notifyItemRemoved(pos);
-                                dialogInterface.dismiss();
-                            }
-                        },
-
-                        "Cancel", new DialogInterface.OnClickListener() {
-                            @Override public void onClick(DialogInterface dialogInterface, int i) {
-                                NotesAdapter.notifyDataSetChanged();
-                                dialogInterface.dismiss();
-                            }
-                        });
-                deleteAsk.show();
+                NotesAdapter.notifyDataSetChanged();
             }
-        };
+        });
 
         ItemTouchHelper itHelper = new ItemTouchHelper(itCallback);
         itHelper.attachToRecyclerView(NotesRecycler);
@@ -147,8 +132,9 @@ public class NoteSelectActivity extends AppCompatActivity
         //button to create and edit a new note
         AppCompatButton NewNote = findViewById(R.id.NewNote);
         NewNote.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View view){
-                noteList = noteIO.loadAll();
+            @Override
+            public void onClick(View view) {
+                noteList = noteIO.loadList();
                 editNote(view, noteList.newNote());
             }
         });
@@ -165,11 +151,11 @@ public class NoteSelectActivity extends AppCompatActivity
                         new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                if (i == 0){
+                                if (i == 0) {
                                     //request external write permissions; later, back up the notes
                                     String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
                                     requestPermissions(perms, REQUEST_BACKUP_EXPORT);
-                                } else if (i == 1){
+                                } else if (i == 1) {
                                     //request external read permissions; later, recover from backup
                                     String[] perms = {Manifest.permission.READ_EXTERNAL_STORAGE};
                                     requestPermissions(perms, REQUEST_BACKUP_IMPORT);
@@ -181,30 +167,35 @@ public class NoteSelectActivity extends AppCompatActivity
         });
 
         //start a timer that reloads the notes every 15 seconds
-        reload_timer = new Timer();
-        reload_timer.schedule(new TimerTask() {
+        interval = new AutoInterval(new AutoInterval.Task() {
             @Override public void run() {
-                noteList = noteIO.loadAll();
+                noteList = noteIO.loadList();
 
                 runOnUiThread(new Runnable() {
-                    @Override public void run() {
+                    @Override
+                    public void run() {
                         NotesAdapter.notifyDataSetChanged();
                     }
                 });
             }
-        }, 0, AUTO_LOAD_INTERVAL_MS);
+        }, AUTO_LOAD_INTERVAL_MS);
+        interval.start();
+
+        //request external write permissions; later, back up the notes
+        String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
+        requestPermissions(perms, REQUEST_BACKUP_EXPORT);
     }
 
     @Override
-    public void onRequestPermissionsResult(int reqCode, @NonNull String[] p, @NonNull int[] res){
-        if(reqCode == REQUEST_BACKUP_EXPORT &&
-           res[0] == PackageManager.PERMISSION_GRANTED){
+    public void onRequestPermissionsResult(int reqCode, @NonNull String[] p, @NonNull int[] res) {
+        if (reqCode == REQUEST_BACKUP_EXPORT &&
+                res[0] == PackageManager.PERMISSION_GRANTED) {
 
             //back up the notes if you got permission for external file saving
             noteIO.exportBackup(noteList);
 
-        } else if(reqCode == REQUEST_BACKUP_IMPORT &&
-                res[0] == PackageManager.PERMISSION_GRANTED){
+        } else if (reqCode == REQUEST_BACKUP_IMPORT &&
+                res[0] == PackageManager.PERMISSION_GRANTED) {
 
             //fetch all backup names and ask user to pick one
             final String[] options = noteIO.getBackupNames();
@@ -217,8 +208,8 @@ public class NoteSelectActivity extends AppCompatActivity
                             noteList = noteIO.importBackup(options[i]);
 
                             //reload everything
-                            noteIO.saveAll(noteList);
-                            noteList = noteIO.loadAll();
+                            noteIO.saveList(noteList);
+                            noteList = noteIO.loadList();
 
                             NotesAdapter.notifyDataSetChanged();
                         }
@@ -227,7 +218,7 @@ public class NoteSelectActivity extends AppCompatActivity
         }
     }
 
-    public void editNote(View v, Note note){
+    public void editNote(View v, Note note) {
         noteIO.save(note);
 
         //pass the selected note, switch to the note edit activity, and exit
@@ -238,11 +229,22 @@ public class NoteSelectActivity extends AppCompatActivity
     }
 
     @Override
-    public void onDestroy(){
-        noteIO.saveAll(noteList);
-        reload_timer.cancel();
+    public void onResume() {
+        super.onResume();
+        interval.start();
+    }
 
+    @Override
+    public void onPause() {
+        super.onPause();
+        interval.stop();
+    }
+
+    @Override
+    public void onDestroy() {
         super.onDestroy();
+        interval.stop();
+
         System.exit(0);
     }
 }

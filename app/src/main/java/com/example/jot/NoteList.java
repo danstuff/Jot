@@ -30,6 +30,16 @@ public class NoteList implements Serializable {
 
     public Note getLast(){ return getNote(getNoteCount() - 1); }
 
+    public String[] getTitles(){
+        String[] names = new String[notes.size()];
+
+        for(int i = 0; i < notes.size(); i++){
+            names[i] = notes.get(i).getTitle();
+        }
+
+        return names;
+    }
+
     public void moveNote(int fromPos, int toPos){
         Collections.swap(notes, fromPos, toPos);
     }
