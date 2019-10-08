@@ -3,10 +3,12 @@ package com.example.jot;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatButton;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -14,8 +16,13 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.textfield.TextInputEditText;
 
-public class NoteEditActivity extends AppCompatActivity {
+public class NoteEditActivity extends AppCompatActivity
+        implements GestureDetector.OnDoubleTapListener {
     public static final int AUTO_SAVE_INTERVAL_MS = 10000;
+
+    private GestureDetector gestureDetector;
+
+    private TextView EmptyMessage;
 
     private TextInputEditText TitleInput;
 
@@ -38,6 +45,13 @@ public class NoteEditActivity extends AppCompatActivity {
 
         //import the note you selected in NoteSelectActivity
         note = (Note) getIntent().getSerializableExtra(NoteSelectActivity.SELECTED_NOTE_DATA);
+
+        //toggle the empty message off if note is populated
+        EmptyMessage = findViewById(R.id.EmptyLinesMessage);
+
+        if(note.getLineCount() > 0){
+            EmptyMessage.setVisibility(View.GONE);
+        }
 
         //create title label, set it to the note's title, add a listener for updates
         TitleInput = findViewById(R.id.TitleInput);
@@ -99,12 +113,18 @@ public class NoteEditActivity extends AppCompatActivity {
 
                 LineAdapter.notifyItemRemoved(pos);
 
+                //show empty message if note is empty
+                if(note.getLineCount() == 0){
+                    EmptyMessage.setVisibility(View.VISIBLE);
+                }
+
                 return deletedLine.getContent();
             }
 
             @Override
             public void undoDelete() {
                 note.addLine(deletedLine.getContent());
+                EmptyMessage.setVisibility(View.GONE);
                 LineAdapter.notifyDataSetChanged();
             }
         });
@@ -112,24 +132,28 @@ public class NoteEditActivity extends AppCompatActivity {
         ItemTouchHelper itHelper = new ItemTouchHelper(itCallback);
         itHelper.attachToRecyclerView(LineRecycler);
 
-        //button to return to notes list
-        AppCompatButton ShowNoteSelect = findViewById(R.id.ShowNoteSelect);
-        ShowNoteSelect.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View view){
-                //return to the notes list
-                finish();
-            }
-        });
+        gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener(){
+            @Override public boolean onDoubleTap(MotionEvent e){
+                //add a line when the NewLine button is clicked
+                EmptyMessage.setVisibility(View.GONE);
 
-        //add a line when the NewLine button is clicked
-        AppCompatButton NewLine = findViewById((R.id.NewLine));
-        NewLine.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View view) {
                 //add an entry and update the adapter
                 note.newLine();
 
                 LineAdapter.notifyDataSetChanged();
                 LineRecycler.scrollToPosition(LineAdapter.getItemCount()-1);
+
+                return true;
+            }
+
+            @Override public void onLongPress(MotionEvent e){ super.onLongPress(e); }
+            @Override public boolean onDoubleTapEvent(MotionEvent e){ return true; }
+            @Override public boolean onDown(MotionEvent e){ return true; }
+        });
+        LineRecycler.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent e) {
+                return gestureDetector.onTouchEvent(e);
             }
         });
 
@@ -141,6 +165,23 @@ public class NoteEditActivity extends AppCompatActivity {
             }
         }, AUTO_SAVE_INTERVAL_MS);
         interval.start();
+    }
+
+    @Override public boolean onSingleTapConfirmed(MotionEvent e){ return true; }
+    @Override public boolean onDoubleTapEvent(MotionEvent e){ return true; }
+
+    @Override
+    public boolean onDoubleTap(MotionEvent e){
+        //add a line when the NewLine button is clicked
+        EmptyMessage.setVisibility(View.GONE);
+
+        //add an entry and update the adapter
+        note.newLine();
+
+        LineAdapter.notifyDataSetChanged();
+        LineRecycler.scrollToPosition(LineAdapter.getItemCount()-1);
+
+        return true;
     }
 
     @Override

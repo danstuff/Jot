@@ -9,12 +9,12 @@
    xmlns="http://www.w3.org/2000/svg"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="1in"
-   height="1in"
-   viewBox="0 0 90.000002 90.000002"
+   width="1.5500408in"
+   height="1.5500408in"
+   viewBox="0 0 139.50368 139.50368"
    id="svg2"
    version="1.1"
-   inkscape:version="0.91 r13725"
+   inkscape:version="0.92.4 (f8dce91, 2019-08-02)"
    sodipodi:docname="jot_icon.svg">
   <defs
      id="defs4" />
@@ -25,9 +25,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="5.6"
-     inkscape:cx="58.872407"
-     inkscape:cy="39.340686"
+     inkscape:zoom="3.0416876"
+     inkscape:cx="67.341911"
+     inkscape:cy="69.872716"
      inkscape:document-units="px"
      inkscape:current-layer="g4165"
      showgrid="false"
@@ -35,12 +35,17 @@
      inkscape:object-paths="true"
      inkscape:object-nodes="true"
      inkscape:snap-intersection-paths="true"
-     inkscape:snap-global="false"
-     inkscape:window-width="1600"
-     inkscape:window-height="878"
-     inkscape:window-x="-8"
-     inkscape:window-y="-8"
-     inkscape:window-maximized="1" />
+     inkscape:snap-global="true"
+     inkscape:window-width="1366"
+     inkscape:window-height="713"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     inkscape:snap-page="true"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
   <metadata
      id="metadata7">
     <rdf:RDF>
@@ -57,12 +62,20 @@
      inkscape:label="Layer 1"
      inkscape:groupmode="layer"
      id="layer1"
-     transform="translate(0,-962.36215)">
+     transform="translate(24.75175,-937.61038)">
     <g
        id="g4154">
       <g
          id="g4165"
          transform="matrix(1.367029,1.367029,-1.367029,1.367029,1330.6378,-396.76783)">
+        <rect
+           id="rect13"
+           width="72.159401"
+           height="72.159401"
+           x="-701.08618"
+           y="690.2179"
+           transform="rotate(-45)"
+           style="fill:#6a5fcc;fill-opacity:0.98395721;stroke-width:0.75166041" />
         <path
            style="fill:#eaeaea;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.89717102;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
            d="m 20.31379,979.42785 42.575043,-0.78934 8.314343,4.69641 -8.137332,4.7976 -42.928194,0.79589 z"

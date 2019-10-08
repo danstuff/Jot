@@ -8,6 +8,7 @@ import android.graphics.drawable.Drawable;
 import android.view.View;
 
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,7 +24,7 @@ public class ItemTouchUtil {
     private static ColorDrawable colorBackground;
     private static Drawable deleteIcon;
 
-    public static ItemTouchHelper.SimpleCallback make(Context ctx, final Actions actions){
+    public static ItemTouchHelper.SimpleCallback make(final Context ctx, final Actions actions){
         colorBackground = new ColorDrawable(ctx.getColor(R.color.colorDelete));
         deleteIcon = ctx.getDrawable(android.R.drawable.ic_menu_delete);
 
@@ -49,13 +50,16 @@ public class ItemTouchUtil {
                 //remove the item
                 String obj_name = actions.delete(pos);
 
-                Snackbar.make(viewHolder.itemView, "Deleted " + obj_name,
+                Snackbar sb = Snackbar.make(viewHolder.itemView, "Deleted " + obj_name,
                         Snackbar.LENGTH_LONG).setAction("UNDO", new View.OnClickListener() {
                     @Override
                     public void onClick(View view) {
                         actions.undoDelete();
                     }
-                }).show();
+                });
+                sb.getView().setBackgroundColor(ContextCompat.getColor(ctx, R.color.colorIcons));
+                sb.setActionTextColor(Color.BLACK);
+                sb.show();
             }
 
             @Override

@@ -1,11 +1,10 @@
 package com.example.jot;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class NoteList implements Serializable {
+public class NoteList {
     private List<Note> notes;
 
     public NoteList() {
@@ -38,6 +37,10 @@ public class NoteList implements Serializable {
         }
 
         return names;
+    }
+
+    public int getSize(){
+        return notes.size();
     }
 
     public void moveNote(int fromPos, int toPos){

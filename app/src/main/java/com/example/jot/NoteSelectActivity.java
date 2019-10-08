@@ -1,12 +1,16 @@
 package com.example.jot;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.view.GestureDetector;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -27,6 +31,10 @@ public class NoteSelectActivity extends AppCompatActivity
     private static final int REQUEST_BACKUP_EXPORT = 101;
     private static final int REQUEST_BACKUP_IMPORT = 102;
 
+    private GestureDetector gestureDetector;
+
+    private TextView EmptyMessage;
+
     private NoteSelectAdapter NotesAdapter;
 
     private AutoInterval interval;
@@ -41,6 +49,13 @@ public class NoteSelectActivity extends AppCompatActivity
 
         noteIO = new NoteIO(this);
         noteList = noteIO.loadList();
+
+        //toggle the empty message off if notelist is populated
+        EmptyMessage = findViewById(R.id.EmptyNotesMessage);
+
+        if(noteList.getSize() > 0){
+            EmptyMessage.setVisibility(View.GONE);
+        }
 
         //if some text was sent to Jot, pick a note to add it to
         Intent intent = getIntent();
@@ -90,7 +105,7 @@ public class NoteSelectActivity extends AppCompatActivity
                         holder.itemView.setOnClickListener(new View.OnClickListener() {
                             @Override public void onClick(View v) {
                                 noteList = noteIO.loadList();
-                                editNote(v, noteList.getNote(pos));
+                                editNote(NoteSelectActivity.this, noteList.getNote(pos));
                             }
                         });
                     }
@@ -122,12 +137,19 @@ public class NoteSelectActivity extends AppCompatActivity
                 //notify the adapter
                 NotesAdapter.notifyItemRemoved(pos);
 
+                //show empty message if notelist is empty
+                if(noteList.getSize() == 0){
+                    EmptyMessage.setVisibility(View.VISIBLE);
+                }
+
                 return deletedNote.getTitle();
             }
 
             @Override public void undoDelete() {
                 noteList.addNote(deletedNote);
                 cycle();
+
+                EmptyMessage.setVisibility(View.GONE);
 
                 NotesAdapter.notifyDataSetChanged();
             }
@@ -136,37 +158,28 @@ public class NoteSelectActivity extends AppCompatActivity
         ItemTouchHelper itHelper = new ItemTouchHelper(itCallback);
         itHelper.attachToRecyclerView(NotesRecycler);
 
-        //button to create and edit a new note
-        AppCompatButton NewNote = findViewById(R.id.NewNote);
-        NewNote.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View view) {
-                editNote(view, noteList.newNote());
-            }
-        });
-
         //button to back up all note data
-        AppCompatButton BackupNotes = findViewById(R.id.BackupNotes);
+        AppCompatButton BackupNotes = findViewById(R.id.ViewOptions);
 
         final String[] options = {"Backup all notes", "Recover notes from backup"};
 
         BackupNotes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                AlertUtil.make(NoteSelectActivity.this,
-                        "Backup Options", options,
-                        new DialogInterface.OnClickListener() {
-                            @Override public void onClick(DialogInterface dialogInterface, int i) {
-                                if (i == 0) {
-                                    //request external write permissions; later, back up the notes
-                                    String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
-                                    requestPermissions(perms, REQUEST_BACKUP_EXPORT);
-                                } else if (i == 1) {
-                                    //request external read permissions; later, recover from backup
-                                    String[] perms = {Manifest.permission.READ_EXTERNAL_STORAGE};
-                                    requestPermissions(perms, REQUEST_BACKUP_IMPORT);
-                                }
+                AlertUtil.make(NoteSelectActivity.this, "Backup Options", options,
+                    new DialogInterface.OnClickListener() {
+                        @Override public void onClick(DialogInterface dialogInterface, int i) {
+                            if (i == 0) {
+                                //request external write permissions; later, back up the notes
+                                String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
+                                requestPermissions(perms, REQUEST_BACKUP_EXPORT);
+                            } else if (i == 1) {
+                                //request external read permissions; later, recover from backup
+                                String[] perms = {Manifest.permission.READ_EXTERNAL_STORAGE};
+                                requestPermissions(perms, REQUEST_BACKUP_IMPORT);
                             }
-                        });
+                        }
+                    });
             }
         });
 
@@ -188,6 +201,25 @@ public class NoteSelectActivity extends AppCompatActivity
         //request external write permissions; later, back up the notes
         String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
         requestPermissions(perms, REQUEST_BACKUP_EXPORT);
+
+        gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener(){
+            @Override public boolean onDoubleTap(MotionEvent e){
+                System.out.println("Double tap!");
+                EmptyMessage.setVisibility(View.GONE);
+                editNote(NoteSelectActivity.this, noteList.newNote());
+                return true;
+            }
+
+            @Override public void onLongPress(MotionEvent e){ super.onLongPress(e); }
+            @Override public boolean onDoubleTapEvent(MotionEvent e){ return true; }
+            @Override public boolean onDown(MotionEvent e){ return true; }
+        });
+        NotesRecycler.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent e) {
+                return gestureDetector.onTouchEvent(e);
+            }
+        });
     }
 
     @Override
@@ -226,14 +258,14 @@ public class NoteSelectActivity extends AppCompatActivity
         }
     }
 
-    public void editNote(View v, Note note) {
+    public void editNote(Context ctx, Note note) {
         noteIO.save(note);
 
         //pass the selected note, switch to the note edit activity, and exit
-        Intent intent = new Intent(v.getContext(), NoteEditActivity.class);
+        Intent intent = new Intent(ctx, NoteEditActivity.class);
         intent.putExtra(SELECTED_NOTE_DATA, note);
 
-        v.getContext().startActivity(intent);
+        ctx.startActivity(intent);
     }
 
     public void cycle(){

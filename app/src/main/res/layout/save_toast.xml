@@ -5,17 +5,20 @@
     android:id="@+id/saveToast"
     android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/saveIcon"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/ViewOptions"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|top"
+        android:width="55dp"
+        android:height="55dp"
+        android:drawableStart="@drawable/ic_save"
+        android:drawableTint="@color/colorIcons"
+        android:minWidth="55dp"
+        android:minHeight="55dp"
+        android:paddingStart="12dp"
+        android:paddingEnd="0dp"
+        android:paddingBottom="5dp"
         android:background="#00000000"
-        android:backgroundTint="#00000000"
-        android:clickable="false"
-        android:drawableStart="@android:drawable/ic_menu_save"
-        android:elevation="0dp"
-        android:shadowColor="#00000000"
-        android:shadowDx="0"
-        android:shadowDy="0"
-        android:shadowRadius="0" />
+        android:elevation="0dp"/>
 </LinearLayout>
