@@ -1,10 +1,6 @@
 package com.example.jot;
 
 import android.os.Environment;
-import android.view.Gravity;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -79,13 +75,6 @@ public class NoteIO {
         } catch (Throwable t){
             t.printStackTrace();
         }
-
-        //ensure the Toast runs on the UI thread
-        activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
-                saveToast();
-            }
-        });
     }
 
     public void saveList(NoteList noteList){
@@ -93,13 +82,6 @@ public class NoteIO {
             noteList.getNote(i).setFileIndex(i);
             save(noteList.getNote(i));
         }
-
-        //ensure the Toast runs on the UI thread
-        activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
-                saveToast();
-            }
-        });
     }
 
     public NoteList cycleList(NoteList noteList){
@@ -209,23 +191,5 @@ public class NoteIO {
         }
 
         return noteList;
-    }
-
-    private void saveToast(){
-        //display a toast in the corner to indicate saving
-        Toast notification = new Toast(activity);
-
-        //add a nice format to the save toast
-        LayoutInflater inf = activity.getLayoutInflater();
-        View layout = inf.inflate(R.layout.save_toast,
-                (ViewGroup) activity.findViewById(R.id.saveToast));
-        notification.setView(layout);
-
-        //setup position and duration
-        notification.setDuration(Toast.LENGTH_SHORT);
-        notification.setGravity(Gravity.TOP | Gravity.END, 8, 8);
-
-        //display the toast
-        notification.show();
     }
 }

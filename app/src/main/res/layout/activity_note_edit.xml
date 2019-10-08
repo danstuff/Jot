@@ -8,4 +8,21 @@
 
     <include layout="@layout/content_note_edit" />
 
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/SaveIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|top"
+        android:width="55dp"
+        android:height="55dp"
+        android:alpha="0.0"
+        android:drawableStart="@drawable/ic_save"
+        android:drawableTint="@color/colorIcons"
+        android:minWidth="55dp"
+        android:minHeight="55dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="0dp"
+        android:background="#00000000"
+        android:elevation="0dp"/>
+
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

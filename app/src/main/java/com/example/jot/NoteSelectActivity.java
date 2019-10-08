@@ -8,7 +8,6 @@ import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -202,22 +201,11 @@ public class NoteSelectActivity extends AppCompatActivity
         String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
         requestPermissions(perms, REQUEST_BACKUP_EXPORT);
 
-        gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener(){
-            @Override public boolean onDoubleTap(MotionEvent e){
-                System.out.println("Double tap!");
+        //double tap creates new notes
+        GestureUtil.bindGesture(this, NotesRecycler, new GestureUtil.DoubleTap() {
+            @Override public void onDoubleTap() {
                 EmptyMessage.setVisibility(View.GONE);
                 editNote(NoteSelectActivity.this, noteList.newNote());
-                return true;
-            }
-
-            @Override public void onLongPress(MotionEvent e){ super.onLongPress(e); }
-            @Override public boolean onDoubleTapEvent(MotionEvent e){ return true; }
-            @Override public boolean onDown(MotionEvent e){ return true; }
-        });
-        NotesRecycler.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent e) {
-                return gestureDetector.onTouchEvent(e);
             }
         });
     }

@@ -4,8 +4,9 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.GestureDetector;
-import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -16,8 +17,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.textfield.TextInputEditText;
 
-public class NoteEditActivity extends AppCompatActivity
-        implements GestureDetector.OnDoubleTapListener {
+public class NoteEditActivity extends AppCompatActivity {
     public static final int AUTO_SAVE_INTERVAL_MS = 10000;
 
     private GestureDetector gestureDetector;
@@ -132,9 +132,9 @@ public class NoteEditActivity extends AppCompatActivity
         ItemTouchHelper itHelper = new ItemTouchHelper(itCallback);
         itHelper.attachToRecyclerView(LineRecycler);
 
-        gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener(){
-            @Override public boolean onDoubleTap(MotionEvent e){
-                //add a line when the NewLine button is clicked
+        //double tap creates new lines
+        GestureUtil.bindGesture(this, LineRecycler, new GestureUtil.DoubleTap() {
+            @Override public void onDoubleTap() {
                 EmptyMessage.setVisibility(View.GONE);
 
                 //add an entry and update the adapter
@@ -142,18 +142,6 @@ public class NoteEditActivity extends AppCompatActivity
 
                 LineAdapter.notifyDataSetChanged();
                 LineRecycler.scrollToPosition(LineAdapter.getItemCount()-1);
-
-                return true;
-            }
-
-            @Override public void onLongPress(MotionEvent e){ super.onLongPress(e); }
-            @Override public boolean onDoubleTapEvent(MotionEvent e){ return true; }
-            @Override public boolean onDown(MotionEvent e){ return true; }
-        });
-        LineRecycler.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent e) {
-                return gestureDetector.onTouchEvent(e);
             }
         });
 
@@ -161,27 +149,21 @@ public class NoteEditActivity extends AppCompatActivity
         interval = new AutoInterval(new AutoInterval.Task() {
             @Override
             public void run() {
-                noteIO.save(note);
+                save();
             }
         }, AUTO_SAVE_INTERVAL_MS);
         interval.start();
     }
 
-    @Override public boolean onSingleTapConfirmed(MotionEvent e){ return true; }
-    @Override public boolean onDoubleTapEvent(MotionEvent e){ return true; }
+    public void save(){
+        noteIO.save(note);
 
-    @Override
-    public boolean onDoubleTap(MotionEvent e){
-        //add a line when the NewLine button is clicked
-        EmptyMessage.setVisibility(View.GONE);
-
-        //add an entry and update the adapter
-        note.newLine();
-
-        LineAdapter.notifyDataSetChanged();
-        LineRecycler.scrollToPosition(LineAdapter.getItemCount()-1);
-
-        return true;
+        //fade in the save icon
+        AlphaAnimation anim = new AlphaAnimation(0.0f, 1.0f);
+        anim.setDuration(1000);
+        anim.setRepeatCount(1);
+        anim.setRepeatMode(Animation.REVERSE);
+        findViewById(R.id.SaveIcon).startAnimation(anim);
     }
 
     @Override
@@ -193,13 +175,13 @@ public class NoteEditActivity extends AppCompatActivity
     @Override
     public void onPause() {
         super.onPause();
-        noteIO.save(note);
+        save();
         interval.stop();
     }
     @Override
     public void onDestroy(){
         super.onDestroy();
-        noteIO.save(note);
+        save();
         interval.stop();
     }
 }

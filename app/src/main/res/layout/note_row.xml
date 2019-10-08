@@ -14,7 +14,7 @@
         android:scrollHorizontally="false"
         android:background="@null"
         android:textColor="@color/colorText"
-        android:maxLength="35"
+        android:maxLength="45"
         android:inputType="textCapSentences"
         android:singleLine="true" />
 
