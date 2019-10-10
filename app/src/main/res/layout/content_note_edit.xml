@@ -26,6 +26,8 @@
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:hint="Title"
+            android:textColorHint="@color/colorBackground"
+            android:textCursorDrawable="@null"
             android:textColor="@color/colorBackground"
             android:inputType="textCapWords"
             android:background="@null"
@@ -33,6 +35,24 @@
             android:singleLine="true"
             android:textSize="22sp" />
     </com.google.android.material.textfield.TextInputLayout>
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/SaveIcon"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:width="55dp"
+        android:height="55dp"
+        android:alpha="0.0"
+        android:background="#00000000"
+        android:drawableStart="@drawable/ic_save"
+        android:drawableTint="@color/colorIcons"
+        android:elevation="0dp"
+        android:minWidth="55dp"
+        android:minHeight="55dp"
+        android:paddingStart="16dp"
+        android:paddingEnd="0dp" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/LineRecycler"

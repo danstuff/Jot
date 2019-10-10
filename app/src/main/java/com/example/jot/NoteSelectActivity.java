@@ -130,7 +130,6 @@ public class NoteSelectActivity extends AppCompatActivity
                 deletedNote = noteList.getNote(pos);
                 noteList.removeNote(pos);
 
-                noteIO.delete(noteIO.getFilename(deletedNote.getFileIndex()));
                 cycle();
 
                 //notify the adapter
@@ -260,6 +259,7 @@ public class NoteSelectActivity extends AppCompatActivity
         AsyncTask.execute(new Runnable() {
             @Override public void run() {
                 noteList = noteIO.cycleList(noteList);
+                noteIO.cleanLocalDir(noteList);
             }
         });
     }

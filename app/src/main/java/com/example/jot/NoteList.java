@@ -19,6 +19,16 @@ public class NoteList {
 
     public void addNote(Note note){
         notes.add(note);
+        indexNotes();
+    }
+
+    public void removeNote(int i){
+        notes.remove(i);
+        indexNotes();
+    }
+
+    public void moveNote(int fromPos, int toPos){
+        Collections.swap(notes, fromPos, toPos);
     }
 
     public int getNoteCount(){ return notes.size(); }
@@ -43,11 +53,11 @@ public class NoteList {
         return notes.size();
     }
 
-    public void moveNote(int fromPos, int toPos){
-        Collections.swap(notes, fromPos, toPos);
+    public void indexNotes(){
+        for(int i = 0; i < getNoteCount(); i++){
+            getNote(i).setFileIndex(i);
+        }
     }
-
-    public void removeNote(int i){ notes.remove(i); }
 
     public void print(){
         for(int i = 0; i < getNoteCount(); i++){

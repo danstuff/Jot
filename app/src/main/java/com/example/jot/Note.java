@@ -17,13 +17,17 @@ public class Note implements Serializable {
         lines = new ArrayList<>();
     }
 
+    private int flip(int line_id){
+        return lines.size() - line_id - 1;
+    }
+
     public String getTitle(){ return title; }
     public void setTitle(String new_title){ title = new_title; }
 
     public int getFileIndex(){ return file_index; }
     public void setFileIndex(int new_index){ file_index = new_index; }
 
-    public NoteLine getLine(int line_id){ return lines.get(line_id); }
+    public NoteLine getLine(int line_id){ return lines.get(flip(line_id)); }
 
     public int getLineCount(){ return lines.size(); }
 
@@ -31,10 +35,10 @@ public class Note implements Serializable {
 
     public void addLine(String content){ lines.add(new NoteLine(content)); }
 
-    public void removeLine(int line_id){ lines.remove(line_id); }
+    public void removeLine(int line_id){ lines.remove(flip(line_id)); }
 
     public void moveLine(int fromPos, int toPos){
-        Collections.swap(lines, fromPos, toPos);
+        Collections.swap(lines, flip(fromPos), flip(toPos));
     }
 
     public void print(){

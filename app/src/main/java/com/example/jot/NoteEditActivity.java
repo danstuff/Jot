@@ -1,12 +1,13 @@
 package com.example.jot;
 
+import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
-import android.view.GestureDetector;
 import android.view.View;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -17,10 +18,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class NoteEditActivity extends AppCompatActivity {
     public static final int AUTO_SAVE_INTERVAL_MS = 10000;
 
-    private GestureDetector gestureDetector;
+    public static final int SAVE_ICON_APPEAR_MS = 500;
+    public static final float SAVE_ICON_FADE_RATE = 0.95f;
 
     private TextView EmptyMessage;
 
@@ -46,6 +51,7 @@ public class NoteEditActivity extends AppCompatActivity {
         //import the note you selected in NoteSelectActivity
         note = (Note) getIntent().getSerializableExtra(NoteSelectActivity.SELECTED_NOTE_DATA);
 
+
         //toggle the empty message off if note is populated
         EmptyMessage = findViewById(R.id.EmptyLinesMessage);
 
@@ -66,6 +72,16 @@ public class NoteEditActivity extends AppCompatActivity {
                 note.setTitle(TitleInput.getText().toString());
             }
         });
+
+        //focus the title if it's empty
+        if(note.getTitle().isEmpty()){
+            TitleInput.requestFocus();
+
+            //open the keyboard
+            ((InputMethodManager)
+                    getSystemService(Context.INPUT_METHOD_SERVICE)).
+                    showSoftInput(TitleInput,0);
+        }
 
         //find line recycler
         LineRecycler = findViewById(R.id.LineRecycler);
@@ -141,29 +157,69 @@ public class NoteEditActivity extends AppCompatActivity {
                 note.newLine();
 
                 LineAdapter.notifyDataSetChanged();
-                LineRecycler.scrollToPosition(LineAdapter.getItemCount()-1);
+
+                new Timer().schedule(new TimerTask() {
+                    @Override public void run() {
+                        runOnUiThread(new Runnable() {
+                            @Override public void run() {
+                                //focus on the new element
+                                LineRecycler.scrollToPosition(0);
+                                View LineView = LineRecycler.getLayoutManager().
+                                        findViewByPosition(0);
+
+                                EditText LineText = LineView.findViewById(R.id.LineText);
+                                LineText.requestFocus();
+
+                                //open the keyboard
+                                ((InputMethodManager)
+                                        getSystemService(Context.INPUT_METHOD_SERVICE)).
+                                        showSoftInput(LineText,0);
+                            }
+                        });
+                    }
+                }, 500);
             }
         });
 
         //start a timer that saves the note every 5 seconds
         interval = new AutoInterval(new AutoInterval.Task() {
-            @Override
-            public void run() {
+            @Override public void run() {
                 save();
             }
         }, AUTO_SAVE_INTERVAL_MS);
         interval.start();
     }
 
-    public void save(){
-        noteIO.save(note);
+    private void save(){
+        AsyncTask.execute(new Runnable() {
+            @Override public void run() {
+                noteIO.save(note);
+            }
+        });
 
         //fade in the save icon
-        AlphaAnimation anim = new AlphaAnimation(0.0f, 1.0f);
-        anim.setDuration(1000);
-        anim.setRepeatCount(1);
-        anim.setRepeatMode(Animation.REVERSE);
-        findViewById(R.id.SaveIcon).startAnimation(anim);
+        final View SaveIcon  = findViewById(R.id.SaveIcon);
+        SaveIcon.setAlpha(1.0f);
+
+        final Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        //tween the alpha towards 0
+                        float a = SaveIcon.getAlpha()*SAVE_ICON_FADE_RATE;
+
+                        //cancel the timer when close to 0
+                        if(a < 0.01) {
+                            SaveIcon.setAlpha(0);
+                            timer.cancel();
+                        } else {
+                            SaveIcon.setAlpha(a);
+                        }
+                    }
+                });
+            }
+        }, SAVE_ICON_APPEAR_MS, 10);
     }
 
     @Override

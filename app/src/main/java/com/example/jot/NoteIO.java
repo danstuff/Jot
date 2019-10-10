@@ -19,6 +19,8 @@ import java.util.Date;
 import java.util.Locale;
 
 public class NoteIO {
+    public static final int NOTE_MAX = 100;
+
     public AppCompatActivity activity;
 
     public NoteIO(AppCompatActivity activity){ this.activity = activity; }
@@ -50,7 +52,7 @@ public class NoteIO {
     public NoteList loadList() {
         NoteList noteList = new NoteList();
 
-        for(int i = 0; i < 1000; i++){
+        for(int i = 0; i < NOTE_MAX; i++){
             Note note = load(getFilename(i));
 
             if(note != null) { noteList.addNote(note); }
@@ -60,8 +62,14 @@ public class NoteIO {
         return noteList;
     }
 
-    public void delete(String filename){
-        activity.deleteFile(filename);
+    public void cleanLocalDir(NoteList noteList){
+        //deletes all files in the local dir that are unused by the notelist
+        //assumes the notelist is properly indexed
+        String[] filenames = activity.fileList();
+
+        for(int i = noteList.getNoteCount(); i < filenames.length; i++){
+            activity.deleteFile(filenames[i]);
+        }
     }
 
     public void save(Note note){
