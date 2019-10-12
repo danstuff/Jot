@@ -29,6 +29,7 @@ public class NoteSelectActivity extends AppCompatActivity
 
     private static final int REQUEST_BACKUP_EXPORT = 101;
     private static final int REQUEST_BACKUP_IMPORT = 102;
+    private static final int REQUEST_BACKUP_CULL = 103;
 
     private GestureDetector gestureDetector;
 
@@ -159,12 +160,12 @@ public class NoteSelectActivity extends AppCompatActivity
         //button to back up all note data
         AppCompatButton BackupNotes = findViewById(R.id.ViewOptions);
 
-        final String[] options = {"Backup all notes", "Recover notes from backup"};
+        final String[] options = {"Backup all notes", "Recover notes from backup", "Delete old backups"};
 
         BackupNotes.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                AlertUtil.make(NoteSelectActivity.this, "Backup Options", options,
+                AlertUtil.make(NoteSelectActivity.this, "Options", options,
                     new DialogInterface.OnClickListener() {
                         @Override public void onClick(DialogInterface dialogInterface, int i) {
                             if (i == 0) {
@@ -175,6 +176,10 @@ public class NoteSelectActivity extends AppCompatActivity
                                 //request external read permissions; later, recover from backup
                                 String[] perms = {Manifest.permission.READ_EXTERNAL_STORAGE};
                                 requestPermissions(perms, REQUEST_BACKUP_IMPORT);
+                            } else if(i == 2){
+                                //request external read permissions; later, recover from backup
+                                String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
+                                requestPermissions(perms, REQUEST_BACKUP_CULL);
                             }
                         }
                     });
@@ -196,10 +201,6 @@ public class NoteSelectActivity extends AppCompatActivity
         }, AUTO_LOAD_INTERVAL_MS);
         interval.start();
 
-        //request external write permissions; later, back up the notes
-        String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
-        requestPermissions(perms, REQUEST_BACKUP_EXPORT);
-
         //double tap creates new notes
         GestureUtil.bindGesture(this, NotesRecycler, new GestureUtil.DoubleTap() {
             @Override public void onDoubleTap() {
@@ -207,6 +208,12 @@ public class NoteSelectActivity extends AppCompatActivity
                 editNote(NoteSelectActivity.this, noteList.newNote());
             }
         });
+
+        if(noteIO.needBackup()){
+            //request external write permissions; later, back up the notes
+            String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
+            requestPermissions(perms, REQUEST_BACKUP_EXPORT);
+        }
     }
 
     @Override
@@ -242,6 +249,8 @@ public class NoteSelectActivity extends AppCompatActivity
                             NotesAdapter.notifyDataSetChanged();
                         }
                     });
+        } else if (c == REQUEST_BACKUP_CULL && r[0] == PackageManager.PERMISSION_GRANTED) {
+            noteIO.cleanBackupDir();
         }
     }
 
@@ -265,18 +274,19 @@ public class NoteSelectActivity extends AppCompatActivity
     }
 
     @Override public void onResume() {
-        super.onResume();
         interval.start();
+        super.onResume();
     }
 
     @Override public void onPause() {
-        super.onPause();
         interval.stop();
+        super.onPause();
     }
 
     @Override public void onDestroy() {
-        super.onDestroy();
+
         interval.stop();
+        super.onDestroy();
         System.exit(0);
     }
 }

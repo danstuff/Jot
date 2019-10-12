@@ -24,6 +24,8 @@ import java.util.TimerTask;
 public class NoteEditActivity extends AppCompatActivity {
     public static final int AUTO_SAVE_INTERVAL_MS = 10000;
 
+    public static final int FOCUS_LINE_DELAY_MS = 5;
+
     public static final int SAVE_ICON_APPEAR_MS = 500;
     public static final float SAVE_ICON_FADE_RATE = 0.95f;
 
@@ -177,7 +179,7 @@ public class NoteEditActivity extends AppCompatActivity {
                             }
                         });
                     }
-                }, 500);
+                }, FOCUS_LINE_DELAY_MS);
             }
         });
 

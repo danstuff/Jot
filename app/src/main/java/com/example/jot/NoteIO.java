@@ -14,12 +14,15 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
 public class NoteIO {
     public static final int NOTE_MAX = 100;
+    public static final int CULL_AFTER_DAYS = 10;
 
     public AppCompatActivity activity;
 
@@ -62,15 +65,6 @@ public class NoteIO {
         return noteList;
     }
 
-    public void cleanLocalDir(NoteList noteList){
-        //deletes all files in the local dir that are unused by the notelist
-        //assumes the notelist is properly indexed
-        String[] filenames = activity.fileList();
-
-        for(int i = noteList.getNoteCount(); i < filenames.length; i++){
-            activity.deleteFile(filenames[i]);
-        }
-    }
 
     public void save(Note note){
         try {
@@ -95,6 +89,57 @@ public class NoteIO {
     public NoteList cycleList(NoteList noteList){
         saveList(noteList);
         return loadList();
+    }
+
+    public void cleanLocalDir(NoteList noteList){
+        //deletes all files in the local dir that are unused by the notelist
+        //assumes the notelist is properly indexed
+        String[] filenames = activity.fileList();
+
+        for(int i = noteList.getNoteCount(); i < filenames.length; i++){
+            activity.deleteFile(filenames[i]);
+        }
+    }
+
+    public void cleanBackupDir(){
+        DateFormat dtf = new SimpleDateFormat("MM_dd_yy", Locale.US);
+        Date today = new Date();
+
+        //find a time before the current date
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(today);
+        cal.add(Calendar.DATE, -CULL_AFTER_DAYS);
+
+        Date cull_date = cal.getTime();
+
+        //fetch all backup files
+        File[] bup_files = getBackupFolder().listFiles();
+
+
+        for(int i = 0; i < bup_files.length; i++){
+            String date_str = bup_files[i].getName().replace(".txt", "");
+
+            try{
+                Date date = dtf.parse(date_str);
+
+                //if bup was made before the cull date, delete it
+                if(date.before(cull_date)){
+                    bup_files[i].delete();
+                } else {
+                    //since files are in order, the following files can be ignored
+                    break;
+                }
+            }catch(ParseException e){
+                e.printStackTrace();
+            }
+        }
+
+        activity.runOnUiThread(new Runnable() {
+            @Override public void run() {
+                Toast.makeText(activity, "Deleted all backups older than " +
+                                CULL_AFTER_DAYS + " days", Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     private File getBackupFolder(){
@@ -199,5 +244,25 @@ public class NoteIO {
         }
 
         return noteList;
+    }
+
+    public boolean needBackup(){
+        //create a date format and create todays date
+        DateFormat dtf = new SimpleDateFormat("MM_dd_yy", Locale.US);
+        Date today = new Date();
+
+        //get the most recent backup
+        String[] names = getBackupNames();
+        String last_name = names[names.length-1].replace(".txt","");
+
+        try{
+            Date last_bup = dtf.parse(last_name);
+
+            return today.after(last_bup);
+        }catch(ParseException e){
+            e.printStackTrace();
+        }
+
+        return true;
     }
 }
