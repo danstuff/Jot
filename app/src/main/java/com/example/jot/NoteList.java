@@ -1,10 +1,11 @@
 package com.example.jot;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class NoteList {
+public class NoteList implements Serializable {
     private List<Note> notes;
 
     public NoteList() {

@@ -12,7 +12,6 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.DefaultItemAnimator;
-import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -40,6 +39,9 @@ public class NoteEditActivity extends AppCompatActivity {
 
     private NoteIO noteIO;
 
+    private NoteList noteList;
+    private int noteIndex;
+
     private Note note;
     private NoteLine deletedLine;
 
@@ -50,9 +52,11 @@ public class NoteEditActivity extends AppCompatActivity {
 
         noteIO = new NoteIO(this);
 
-        //import the note you selected in NoteSelectActivity
-        note = (Note) getIntent().getSerializableExtra(NoteSelectActivity.SELECTED_NOTE_DATA);
+        //import the noteList, and index you selected in NoteSelectActivity
+        noteList = (NoteList) getIntent().getSerializableExtra(NoteSelectActivity.NOTE_LIST);
+        noteIndex = (int) getIntent().getSerializableExtra(NoteSelectActivity.SELECTED_NOTE_INDEX);
 
+        note = noteList.getNote(noteIndex);
 
         //toggle the empty message off if note is populated
         EmptyMessage = findViewById(R.id.EmptyLinesMessage);
@@ -118,7 +122,7 @@ public class NoteEditActivity extends AppCompatActivity {
         LineRecycler.setItemAnimator(new DefaultItemAnimator());
 
         //dragging recycler items up/down rearranges them, left/right deletes them
-        ItemTouchHelper.SimpleCallback itCallback = ItemTouchUtil.make(this,
+        ItemTouchUtil.bind(this,
                 new ItemTouchUtil.Actions() {
             @Override public void move(int fromPos, int toPos) {
                 note.moveLine(fromPos, toPos);
@@ -145,10 +149,7 @@ public class NoteEditActivity extends AppCompatActivity {
                 EmptyMessage.setVisibility(View.GONE);
                 LineAdapter.notifyDataSetChanged();
             }
-        });
-
-        ItemTouchHelper itHelper = new ItemTouchHelper(itCallback);
-        itHelper.attachToRecyclerView(LineRecycler);
+        }, LineRecycler);
 
         //double tap creates new lines
         GestureUtil.bindGesture(this, LineRecycler, new GestureUtil.DoubleTap() {
@@ -195,7 +196,7 @@ public class NoteEditActivity extends AppCompatActivity {
     private void save(){
         AsyncTask.execute(new Runnable() {
             @Override public void run() {
-                noteIO.save(note);
+                noteIO.save(noteList);
             }
         });
 

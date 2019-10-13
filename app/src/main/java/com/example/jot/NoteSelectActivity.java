@@ -16,7 +16,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.DefaultItemAnimator;
-import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,7 +23,8 @@ public class NoteSelectActivity extends AppCompatActivity
         implements ActivityCompat.OnRequestPermissionsResultCallback {
     public static final int AUTO_LOAD_INTERVAL_MS = 15000;
 
-    public static final String SELECTED_NOTE_DATA = "SelNoteData";
+    public static final String NOTE_LIST = "NoteList";
+    public static final String SELECTED_NOTE_INDEX = "SelNoteIndex";
 
     private static final int REQUEST_BACKUP_EXPORT = 101;
     private static final int REQUEST_BACKUP_IMPORT = 102;
@@ -47,7 +47,7 @@ public class NoteSelectActivity extends AppCompatActivity
         setContentView(R.layout.activity_note_select);
 
         noteIO = new NoteIO(this);
-        noteList = noteIO.loadList();
+        noteList = noteIO.load();
 
         //toggle the empty message off if notelist is populated
         EmptyMessage = findViewById(R.id.EmptyNotesMessage);
@@ -69,7 +69,7 @@ public class NoteSelectActivity extends AppCompatActivity
                         @Override public void onClick(DialogInterface dialogInterface, int i) {
                             noteList.getNote(i).addLine(new_line);
 
-                            noteIO.saveList(noteList);
+                            noteIO.save(noteList);
 
                             Toast.makeText(NoteSelectActivity.this,
                                     "Text Inserted", Toast.LENGTH_LONG).show();
@@ -104,8 +104,8 @@ public class NoteSelectActivity extends AppCompatActivity
                         //when clicked, open note to edit
                         holder.itemView.setOnClickListener(new View.OnClickListener() {
                             @Override public void onClick(View v) {
-                                noteList = noteIO.loadList();
-                                editNote(NoteSelectActivity.this, noteList.getNote(pos));
+                                noteList = noteIO.load();
+                                editNote(NoteSelectActivity.this, pos);
                             }
                         });
                     }
@@ -118,20 +118,18 @@ public class NoteSelectActivity extends AppCompatActivity
         NotesRecycler.setAdapter(NotesAdapter);
 
         //dragging items up/down rearranges them
-        ItemTouchHelper.SimpleCallback itCallback = ItemTouchUtil.make(this,
+        ItemTouchUtil.bind(this,
                 new ItemTouchUtil.Actions() {
             @Override public void move(int fromPos, int toPos) {
                 noteList.moveNote(fromPos, toPos);
 
-                save();
+                noteIO.save(noteList);
             }
 
             @Override public String delete(int pos) {
                 deletedNote = noteList.getNote(pos);
 
-                save();
-                noteList.indexNotes();
-                noteIO.cleanLocalDir(noteList);
+                noteIO.save(noteList);
 
                 noteList.removeNote(pos);
 
@@ -149,16 +147,13 @@ public class NoteSelectActivity extends AppCompatActivity
             @Override public void undoDelete() {
                 noteList.addNote(deletedNote);
 
-                save();
+                noteIO.save(noteList);
 
                 EmptyMessage.setVisibility(View.GONE);
 
                 NotesAdapter.notifyDataSetChanged();
             }
-        });
-
-        ItemTouchHelper itHelper = new ItemTouchHelper(itCallback);
-        itHelper.attachToRecyclerView(NotesRecycler);
+        }, NotesRecycler);
 
         //button to back up all note data
         AppCompatButton BackupNotes = findViewById(R.id.ViewOptions);
@@ -192,7 +187,7 @@ public class NoteSelectActivity extends AppCompatActivity
         //start a timer that reloads the notes every 15 seconds
         interval = new AutoInterval(new AutoInterval.Task() {
             @Override public void run() {
-                noteList = noteIO.loadList();
+                noteList = noteIO.load();
 
                 runOnUiThread(new Runnable() {
                     @Override
@@ -208,7 +203,8 @@ public class NoteSelectActivity extends AppCompatActivity
         GestureUtil.bindGesture(this, NotesRecycler, new GestureUtil.DoubleTap() {
             @Override public void onDoubleTap() {
                 EmptyMessage.setVisibility(View.GONE);
-                editNote(NoteSelectActivity.this, noteList.newNote());
+                noteList.newNote();
+                editNote(NoteSelectActivity.this, noteList.getNoteCount()-1);
             }
         });
 
@@ -239,7 +235,7 @@ public class NoteSelectActivity extends AppCompatActivity
                             noteList = noteIO.importBackup(options[fi]);
 
                             //save everything
-                            save();
+                            noteIO.save(noteList);
                         }
                     });
         } else if (c == REQUEST_BACKUP_CULL && r[0] == PackageManager.PERMISSION_GRANTED) {
@@ -247,19 +243,14 @@ public class NoteSelectActivity extends AppCompatActivity
         }
     }
 
-    public void save(){
-        noteList.indexNotes();
-        noteIO.cleanLocalDir(noteList);
-
-        noteIO.saveList(noteList);
-    }
-
-    public void editNote(Context ctx, Note note) {
-        noteIO.save(note);
+    public void editNote(Context ctx, int noteIndex) {
+        noteIO.save(noteList);
 
         //pass the selected note, switch to the note edit activity, and exit
         Intent intent = new Intent(ctx, NoteEditActivity.class);
-        intent.putExtra(SELECTED_NOTE_DATA, note);
+        intent.putExtra(NOTE_LIST, noteList);
+        intent.putExtra(SELECTED_NOTE_INDEX, noteIndex);
+
 
         ctx.startActivity(intent);
     }

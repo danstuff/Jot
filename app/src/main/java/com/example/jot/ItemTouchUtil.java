@@ -24,12 +24,28 @@ public class ItemTouchUtil {
     private static ColorDrawable colorBackground;
     private static Drawable deleteIcon;
 
-    public static ItemTouchHelper.SimpleCallback make(final Context ctx, final Actions actions){
+    public static void bind(final Context ctx, final Actions actions, RecyclerView recyclerView){
         colorBackground = new ColorDrawable(ctx.getColor(R.color.colorDelete));
         deleteIcon = ctx.getDrawable(android.R.drawable.ic_menu_delete);
 
-        return new ItemTouchHelper.SimpleCallback(
-                ItemTouchHelper.UP | ItemTouchHelper.DOWN, ItemTouchHelper.RIGHT) {
+        ItemTouchHelper.Callback itCall = new ItemTouchHelper.Callback() {
+            @Override
+            public boolean isLongPressDragEnabled() {
+                return true;
+            }
+
+            @Override
+            public boolean isItemViewSwipeEnabled() {
+                return true;
+            }
+
+            @Override
+            public int getMovementFlags(RecyclerView recyclerView,
+                                        RecyclerView.ViewHolder viewHolder) {
+                return makeMovementFlags(ItemTouchHelper.UP | ItemTouchHelper.DOWN,
+                        ItemTouchHelper.RIGHT);
+            }
+
             @Override
             public boolean onMove(@NonNull RecyclerView recycler,
                                   @NonNull RecyclerView.ViewHolder viewHolder,
@@ -94,5 +110,8 @@ public class ItemTouchUtil {
                 super.onChildDraw(c, rView, viewHolder, dX, dY, actionState, isActive);
             }
         };
+
+        ItemTouchHelper itHelp = new ItemTouchHelper(itCall);
+        itHelp.attachToRecyclerView(recyclerView);
     }
 }
