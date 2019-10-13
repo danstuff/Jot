@@ -12,20 +12,14 @@ public class NoteList {
     }
 
     public Note newNote() {
-        Note note = new Note(getNoteCount());
+        Note note = new Note();
         notes.add(note);
         return note;
     }
 
-    public void addNote(Note note){
-        notes.add(note);
-        indexNotes();
-    }
+    public void addNote(Note note){ notes.add(note); }
 
-    public void removeNote(int i){
-        notes.remove(i);
-        indexNotes();
-    }
+    public void removeNote(int i){ notes.remove(i); }
 
     public void moveNote(int fromPos, int toPos){
         Collections.swap(notes, fromPos, toPos);
@@ -33,11 +27,15 @@ public class NoteList {
 
     public int getNoteCount(){ return notes.size(); }
 
-    public Note getNote(int i){
-        return notes.get(i);
+    public Note getNote(int i){ return notes.get(i); }
+
+    public int getSize(){
+        return notes.size();
     }
 
-    public Note getLast(){ return getNote(getNoteCount() - 1); }
+    public Note getLast(){
+        return getNoteCount() > 0 ? getNote(getNoteCount() - 1) : newNote();
+    }
 
     public String[] getTitles(){
         String[] names = new String[notes.size()];
@@ -47,16 +45,6 @@ public class NoteList {
         }
 
         return names;
-    }
-
-    public int getSize(){
-        return notes.size();
-    }
-
-    public void indexNotes(){
-        for(int i = 0; i < getNoteCount(); i++){
-            getNote(i).setFileIndex(i);
-        }
     }
 
     public void print(){

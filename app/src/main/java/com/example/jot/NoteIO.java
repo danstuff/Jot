@@ -1,5 +1,7 @@
 package com.example.jot;
 
+import android.content.Context;
+import android.os.AsyncTask;
 import android.os.Environment;
 import android.widget.Toast;
 
@@ -7,140 +9,157 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.InputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.FileOutputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
 public class NoteIO {
-    public static final int NOTE_MAX = 100;
-    public static final int CULL_AFTER_DAYS = 10;
+    private static final int CULL_AFTER_DAYS = 10;
 
-    public AppCompatActivity activity;
+    private static final String LOCAL_SAVE_FN = "jot.data";
+    private static final String NEW_NOTE_TAG = "`~";
 
-    public NoteIO(AppCompatActivity activity){ this.activity = activity; }
+    private AppCompatActivity activity;
 
-    public String getFilename(int index){
-        return index + ".dat";
+    private DateFormat file_date_format;
+    private Date today;
+
+    public NoteIO(AppCompatActivity activity){
+        this.activity = activity;
+
+        this.file_date_format = new SimpleDateFormat("MM_dd_yy", Locale.US);
+        this.today = new Date();
     }
 
-    public Note load(String filename){
-        Note note = null;
+    private NoteList readFile(String filename, FileInputStream fStream){
+        NoteList noteList = null;
 
         try {
-            //open a file input stream and read the serializable object
-            InputStream fileIn = activity.openFileInput(filename);
-            ObjectInputStream in = new ObjectInputStream(fileIn);
+            //read in the file line by line
+            InputStreamReader inReader = new InputStreamReader(fStream);
+            BufferedReader lineReader = new BufferedReader(inReader);
 
-            note = (Note) in.readObject();
+            String read_line;
 
-            fileIn.close();
+            while((read_line = lineReader.readLine()) != null){
+                if(read_line.startsWith(NEW_NOTE_TAG)){
+                    //if the line starts with the new tag, create a new note
+                    noteList.newNote().setTitle(read_line.substring(NEW_NOTE_TAG.length()+1));
+                } else if(!read_line.isEmpty()){
+                    //if line has content but no new tag, add it as a note line
+                    noteList.getLast().addLine(read_line);
+                }
+            }
+
+            inReader.close();
+            lineReader.close();
+            fStream.close();
         } catch (FileNotFoundException e) {
-            System.out.println("File " + filename + " doesn't exist, load ignored.");
+            System.out.println("File " + filename + " doesn't exist, read ignored.");
         } catch (Exception e) {
             e.printStackTrace();
-        }
-
-        return note;
-    }
-
-    public NoteList loadList() {
-        NoteList noteList = new NoteList();
-
-        for(int i = 0; i < NOTE_MAX; i++){
-            Note note = load(getFilename(i));
-
-            if(note != null) { noteList.addNote(note); }
-            else { break; }
         }
 
         return noteList;
     }
 
+    public NoteList load(){
+        NoteList noteList = null;
 
-    public void save(Note note){
-        try {
-            //overwrite the original save file
-            ObjectOutputStream out = new ObjectOutputStream(
-                    activity.openFileOutput(getFilename(note.getFileIndex()), 0));
-
-            out.writeObject(note);
-            out.close();
-        } catch (Throwable t){
-            t.printStackTrace();
+        try{
+            FileInputStream inStream = activity.openFileInput(LOCAL_SAVE_FN);
+            noteList = readFile(LOCAL_SAVE_FN, inStream);
+        } catch(Exception e){
+            e.printStackTrace();
         }
+
+        return noteList;
     }
 
-    public void saveList(NoteList noteList){
-        for(int i = 0; i < noteList.getNoteCount(); i++){
-            noteList.getNote(i).setFileIndex(i);
-            save(noteList.getNote(i));
+    public NoteList importBackup(String bup_name){
+        NoteList noteList = null;
+
+        File bup = new File(getBackupFolder(), bup_name);
+
+        try{
+            noteList = readFile(bup_name, new FileInputStream(bup));
+        } catch(Exception e){
+            e.printStackTrace();
         }
+
+        showText(bup_name + " imported");
+
+        return noteList;
     }
 
-    public NoteList cycleList(NoteList noteList){
-        saveList(noteList);
-        return loadList();
-    }
 
-    public void cleanLocalDir(NoteList noteList){
-        //deletes all files in the local dir that are unused by the notelist
-        //assumes the notelist is properly indexed
-        String[] filenames = activity.fileList();
+    private void writeFile(final NoteList noteList, final FileOutputStream fStream){
+        AsyncTask.execute(new Runnable(){
+            @Override public void run(){
+                try {
+                    //create output stream
+                    OutputStreamWriter outWriter = new OutputStreamWriter(fStream);
 
-        for(int i = noteList.getNoteCount(); i < filenames.length; i++){
-            activity.deleteFile(filenames[i]);
-        }
-    }
-
-    public void cleanBackupDir(){
-        DateFormat dtf = new SimpleDateFormat("MM_dd_yy", Locale.US);
-        Date today = new Date();
-
-        //find a time before the current date
-        Calendar cal = Calendar.getInstance();
-        cal.setTime(today);
-        cal.add(Calendar.DATE, -CULL_AFTER_DAYS);
-
-        Date cull_date = cal.getTime();
-
-        //fetch all backup files
-        File[] bup_files = getBackupFolder().listFiles();
+                    //iterate through each note and write it line by line
+                    for(int i = 0; i < noteList.getNoteCount(); i++){
+                        Note note = noteList.getNote(i);
 
 
-        for(int i = 0; i < bup_files.length; i++){
-            String date_str = bup_files[i].getName().replace(".txt", "");
+                        //output the fixed title
+                        outWriter.write(NEW_NOTE_TAG + note.getTitle() +"\n");
 
-            try{
-                Date date = dtf.parse(date_str);
+                        for(int j = note.getLineCount()-1; j >= 0; j--){
+                            outWriter.write("- " + note.getLine(j).getContent() + "\n");
+                        }
 
-                //if bup was made before the cull date, delete it
-                if(date.before(cull_date)){
-                    bup_files[i].delete();
-                } else {
-                    //since files are in order, the following files can be ignored
-                    break;
+                        outWriter.write("\n");
+                    }
+
+                    outWriter.close();
+                    fStream.close();
+                } catch (Throwable t){
+                    t.printStackTrace();
                 }
-            }catch(ParseException e){
-                e.printStackTrace();
-            }
-        }
-
-        activity.runOnUiThread(new Runnable() {
-            @Override public void run() {
-                Toast.makeText(activity, "Deleted all backups older than " +
-                                CULL_AFTER_DAYS + " days", Toast.LENGTH_SHORT).show();
             }
         });
+
     }
+
+    public void save(NoteList noteList){
+        try{
+            FileOutputStream outStream = activity.openFileOutput(LOCAL_SAVE_FN, Context.MODE_PRIVATE);
+            writeFile(noteList, outStream);
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public void exportBackup(NoteList noteList){
+        Date today = new Date();
+
+        String stamp = file_date_format.format(today);
+        final String bup_name = stamp + ".txt";
+
+        File bup =  new File(getBackupFolder(), bup_name);
+
+        try{
+            writeFile(noteList, new FileOutputStream(bup));
+        } catch(Exception e){
+            e.printStackTrace();
+        }
+
+        showText(bup_name + " saved in Documents");
+    }
+
 
     private File getBackupFolder(){
         //find documents directory, create new file in a subfolder
@@ -157,112 +176,85 @@ public class NoteIO {
     public String[] getBackupNames(){
         //return all the names of the files in the bup folder as a string array
         File[] bup_files = getBackupFolder().listFiles();
+
+        if(bup_files == null) return new String[0];
+
         String[] bup_names = new String[bup_files.length];
 
         for(int i = 0; i < bup_files.length; i++){
             bup_names[i] = bup_files[i].getName();
         }
 
+        Arrays.sort(bup_names);
+
         return bup_names;
     }
 
-    public void exportBackup(NoteList noteList){
-        try {
-            DateFormat dtf = new SimpleDateFormat("MM_dd_yy", Locale.US);
-            Date today = new Date();
-
-            String stamp = dtf.format(today);
-            final String bup_name = stamp + ".txt";
-
-            File bup =  new File(getBackupFolder(), bup_name);
-
-            //create output stream
-            FileWriter out = new FileWriter(bup);
-
-            //iterate through each note and write it line by line
-            for(int i = 0; i < noteList.getNoteCount(); i++){
-                Note note = noteList.getNote(i);
-
-                //make sure note titles don't begin with dashes to prevent errors
-                String title = note.getTitle();
-
-                while (title.length() > 0 && title.charAt(0) == '-'){
-                    title = title.substring(1);
-                }
-
-                //output the fixed title
-                out.write(title+"\n");
-
-                for(int j = 0; j < note.getLineCount(); j++){
-                    out.write("- " + note.getLine(j).getContent() + "\n");
-                }
-
-                out.write("\n");
-            }
-
-            out.close();
-
-            activity.runOnUiThread(new Runnable() {
-                @Override public void run() {
-                    Toast.makeText(activity, bup_name + " saved in Documents",
-                            Toast.LENGTH_SHORT).show();
-                }
-            });
-        } catch (Throwable t){
-            t.printStackTrace();
-        }
-    }
-
-    public NoteList importBackup(final String filename){
-        NoteList noteList = new NoteList();
-
-        try {
-            File bup =  new File(getBackupFolder(), filename);
-            BufferedReader reader = new BufferedReader(new FileReader(bup));
-
-            String read_line;
-
-            //append the file data to the current noteList
-            while((read_line = reader.readLine()) != null){
-                if(read_line.startsWith("- ")){
-                    //if line begins with a dash, add it as a note line
-                    String content = read_line.substring(2);
-                    noteList.getLast().addLine(content);
-                } else if(!read_line.isEmpty()){
-                    //if the line isn't empty but has no dash it's a note name, create it
-                    noteList.newNote().setTitle(read_line);
-                }
-            }
-            activity.runOnUiThread(new Runnable() {
-                @Override public void run() {
-                    Toast.makeText(activity, filename + " imported",
-                            Toast.LENGTH_SHORT).show();
-                }
-            });
-        } catch (Throwable t){
-            t.printStackTrace();
-        }
-
-        return noteList;
-    }
-
     public boolean needBackup(){
-        //create a date format and create todays date
-        DateFormat dtf = new SimpleDateFormat("MM_dd_yy", Locale.US);
-        Date today = new Date();
-
         //get the most recent backup
         String[] names = getBackupNames();
+
+        if(names.length <= 0) return true;
+
         String last_name = names[names.length-1].replace(".txt","");
 
         try{
-            Date last_bup = dtf.parse(last_name);
+            //parse the last filename into a date
+            Date last_bup = file_date_format.parse(last_name);
 
-            return today.after(last_bup);
+            if(last_bup == null) return true;
+
+            //get calendar instances
+            Calendar ctoday = Calendar.getInstance();
+            ctoday.setTime(today);
+
+            Calendar clast_bup = Calendar.getInstance();
+            clast_bup.setTime(last_bup);
+
+            //return true if today is a different day from last backup
+            return !(ctoday.get(Calendar.DAY_OF_YEAR) == clast_bup.get(Calendar.DAY_OF_YEAR) &&
+                    ctoday.get(Calendar.YEAR) == clast_bup.get(Calendar.YEAR));
         }catch(ParseException e){
             e.printStackTrace();
         }
 
         return true;
+    }
+
+    public void cleanBackupDir() {
+        //find a time before the current date
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(today);
+        cal.add(Calendar.DATE, -CULL_AFTER_DAYS);
+
+        Date cull_date = cal.getTime();
+
+        //fetch all backup files
+        File[] bup_files = getBackupFolder().listFiles();
+        if (bup_files == null) return;
+
+        for(int i = 0; i < bup_files.length; i++) {
+            //get the main title, which includes a date in the format
+            String date_str = bup_files[i].getName().replace(".txt", "");
+
+            try {
+                //if bup was made before the cull date, delete it
+                if (file_date_format.parse(date_str).before(cull_date)) {
+                    bup_files[i].delete();
+                } 
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        showText("Deleted all backups older than " + CULL_AFTER_DAYS + " days");
+    }
+
+    private void showText(final String text){
+        activity.runOnUiThread(new Runnable() {
+            @Override public void run() {
+                Toast.makeText(activity, text, Toast.LENGTH_LONG).show();
+            }
+        });
     }
 }

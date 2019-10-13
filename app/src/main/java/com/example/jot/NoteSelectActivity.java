@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.GestureDetector;
 import android.view.View;
@@ -69,7 +68,8 @@ public class NoteSelectActivity extends AppCompatActivity
                     new DialogInterface.OnClickListener() {
                         @Override public void onClick(DialogInterface dialogInterface, int i) {
                             noteList.getNote(i).addLine(new_line);
-                            cycle();
+
+                            noteIO.saveList(noteList);
 
                             Toast.makeText(NoteSelectActivity.this,
                                     "Text Inserted", Toast.LENGTH_LONG).show();
@@ -122,16 +122,18 @@ public class NoteSelectActivity extends AppCompatActivity
                 new ItemTouchUtil.Actions() {
             @Override public void move(int fromPos, int toPos) {
                 noteList.moveNote(fromPos, toPos);
-                cycle();
 
-                NotesAdapter.notifyDataSetChanged();
+                save();
             }
 
             @Override public String delete(int pos) {
                 deletedNote = noteList.getNote(pos);
-                noteList.removeNote(pos);
 
-                cycle();
+                save();
+                noteList.indexNotes();
+                noteIO.cleanLocalDir(noteList);
+
+                noteList.removeNote(pos);
 
                 //notify the adapter
                 NotesAdapter.notifyItemRemoved(pos);
@@ -146,7 +148,8 @@ public class NoteSelectActivity extends AppCompatActivity
 
             @Override public void undoDelete() {
                 noteList.addNote(deletedNote);
-                cycle();
+
+                save();
 
                 EmptyMessage.setVisibility(View.GONE);
 
@@ -220,11 +223,7 @@ public class NoteSelectActivity extends AppCompatActivity
     public void onRequestPermissionsResult(int c, @NonNull String[] p, @NonNull int[] r) {
         if (c == REQUEST_BACKUP_EXPORT && r[0] == PackageManager.PERMISSION_GRANTED) {
             //back up the notes if you got permission for external file saving
-            AsyncTask.execute(new Runnable() {
-                @Override public void run() {
-                    noteIO.exportBackup(noteList);
-                }
-            });
+            noteIO.exportBackup(noteList);
 
         } else if (c == REQUEST_BACKUP_IMPORT && r[0] == PackageManager.PERMISSION_GRANTED) {
             //fetch all backup names and ask user to pick one
@@ -237,21 +236,22 @@ public class NoteSelectActivity extends AppCompatActivity
                             final int fi = i;
 
                             //import the selected file
-                            AsyncTask.execute(new Runnable() {
-                                @Override public void run() {
-                                    noteList = noteIO.importBackup(options[fi]);
-                                }
-                            });
+                            noteList = noteIO.importBackup(options[fi]);
 
-                            //reload everything
-                            cycle();
-
-                            NotesAdapter.notifyDataSetChanged();
+                            //save everything
+                            save();
                         }
                     });
         } else if (c == REQUEST_BACKUP_CULL && r[0] == PackageManager.PERMISSION_GRANTED) {
             noteIO.cleanBackupDir();
         }
+    }
+
+    public void save(){
+        noteList.indexNotes();
+        noteIO.cleanLocalDir(noteList);
+
+        noteIO.saveList(noteList);
     }
 
     public void editNote(Context ctx, Note note) {
@@ -262,15 +262,6 @@ public class NoteSelectActivity extends AppCompatActivity
         intent.putExtra(SELECTED_NOTE_DATA, note);
 
         ctx.startActivity(intent);
-    }
-
-    public void cycle(){
-        AsyncTask.execute(new Runnable() {
-            @Override public void run() {
-                noteList = noteIO.cycleList(noteList);
-                noteIO.cleanLocalDir(noteList);
-            }
-        });
     }
 
     @Override public void onResume() {
