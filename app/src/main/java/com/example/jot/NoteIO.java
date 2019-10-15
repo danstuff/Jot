@@ -28,10 +28,16 @@ public class NoteIO {
     private static final String LOCAL_SAVE_FN = "jot.data";
     private static final String NEW_NOTE_TAG = "`~";
 
+    private static final String UNPARSEABLE_FN =  "00_00_00.txt";
+
     private AppCompatActivity activity;
 
     private DateFormat file_date_format;
     private Date today;
+
+    private NoteList saveList;
+    private FileOutputStream saveStream;
+
 
     public NoteIO(AppCompatActivity activity){
         this.activity = activity;
@@ -40,9 +46,7 @@ public class NoteIO {
         this.today = new Date();
     }
 
-    private NoteList readFile(String filename, FileInputStream fStream){
-        NoteList noteList = null;
-
+    private NoteList readFile(NoteList noteList, FileInputStream fStream){
         try {
             //read in the file line by line
             InputStreamReader inReader = new InputStreamReader(fStream);
@@ -50,21 +54,25 @@ public class NoteIO {
 
             String read_line;
 
+            NoteList buffer = new NoteList();
+
             while((read_line = lineReader.readLine()) != null){
                 if(read_line.startsWith(NEW_NOTE_TAG)){
                     //if the line starts with the new tag, create a new note
-                    noteList.newNote().setTitle(read_line.substring(NEW_NOTE_TAG.length()+1));
+                    buffer.newNote().setTitle(read_line.substring(NEW_NOTE_TAG.length()));
                 } else if(!read_line.isEmpty()){
                     //if line has content but no new tag, add it as a note line
-                    noteList.getLast().addLine(read_line);
+                    buffer.getLast().addLine(read_line);
                 }
             }
 
             inReader.close();
             lineReader.close();
             fStream.close();
-        } catch (FileNotFoundException e) {
-            System.out.println("File " + filename + " doesn't exist, read ignored.");
+
+            if(buffer.getNoteCount() > 0){
+                return buffer;
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -72,12 +80,12 @@ public class NoteIO {
         return noteList;
     }
 
-    public NoteList load(){
-        NoteList noteList = null;
-
+    public NoteList load(NoteList noteList){
         try{
             FileInputStream inStream = activity.openFileInput(LOCAL_SAVE_FN);
-            noteList = readFile(LOCAL_SAVE_FN, inStream);
+            return readFile(noteList, inStream);
+        } catch (FileNotFoundException e) {
+            System.out.println("File " + LOCAL_SAVE_FN + " doesn't exist, read ignored.");
         } catch(Exception e){
             e.printStackTrace();
         }
@@ -85,47 +93,44 @@ public class NoteIO {
         return noteList;
     }
 
-    public NoteList importBackup(String bup_name){
-        NoteList noteList = null;
-
+    public NoteList importBackup(NoteList noteList, String bup_name){
         File bup = new File(getBackupFolder(), bup_name);
 
         try{
-            noteList = readFile(bup_name, new FileInputStream(bup));
+            showText(bup_name + " imported");
+            return readFile(noteList, new FileInputStream(bup));
         } catch(Exception e){
             e.printStackTrace();
         }
-
-        showText(bup_name + " imported");
 
         return noteList;
     }
 
 
-    private void writeFile(final NoteList noteList, final FileOutputStream fStream){
+    private void writeFile(){
         AsyncTask.execute(new Runnable(){
             @Override public void run(){
                 try {
                     //create output stream
-                    OutputStreamWriter outWriter = new OutputStreamWriter(fStream);
+                    OutputStreamWriter outWriter = new OutputStreamWriter(saveStream);
 
                     //iterate through each note and write it line by line
-                    for(int i = 0; i < noteList.getNoteCount(); i++){
-                        Note note = noteList.getNote(i);
+                    for(int i = 0; i < saveList.getNoteCount(); i++){
+                        Note note = saveList.getNote(i);
 
 
                         //output the fixed title
                         outWriter.write(NEW_NOTE_TAG + note.getTitle() +"\n");
 
                         for(int j = note.getLineCount()-1; j >= 0; j--){
-                            outWriter.write("- " + note.getLine(j).getContent() + "\n");
+                            outWriter.write(note.getLine(j).getContent() + "\n");
                         }
 
                         outWriter.write("\n");
                     }
 
                     outWriter.close();
-                    fStream.close();
+                    saveStream.close();
                 } catch (Throwable t){
                     t.printStackTrace();
                 }
@@ -136,8 +141,10 @@ public class NoteIO {
 
     public void save(NoteList noteList){
         try{
-            FileOutputStream outStream = activity.openFileOutput(LOCAL_SAVE_FN, Context.MODE_PRIVATE);
-            writeFile(noteList, outStream);
+            saveList = noteList;
+            saveStream = activity.openFileOutput(LOCAL_SAVE_FN, Context.MODE_PRIVATE);
+
+            writeFile();
         } catch(Exception e){
             e.printStackTrace();
         }
@@ -152,7 +159,10 @@ public class NoteIO {
         File bup =  new File(getBackupFolder(), bup_name);
 
         try{
-            writeFile(noteList, new FileOutputStream(bup));
+            saveList = noteList;
+            saveStream = new FileOutputStream(bup);
+
+            writeFile();
         } catch(Exception e){
             e.printStackTrace();
         }
@@ -183,6 +193,12 @@ public class NoteIO {
 
         for(int i = 0; i < bup_files.length; i++){
             bup_names[i] = bup_files[i].getName();
+
+            try{
+                file_date_format.parse(bup_names[i]);
+            } catch(ParseException e){
+                bup_names[i] = UNPARSEABLE_FN;
+            }
         }
 
         Arrays.sort(bup_names);
@@ -249,6 +265,7 @@ public class NoteIO {
 
         showText("Deleted all backups older than " + CULL_AFTER_DAYS + " days");
     }
+
 
     private void showText(final String text){
         activity.runOnUiThread(new Runnable() {

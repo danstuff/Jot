@@ -1,7 +1,6 @@
 package com.example.jot;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -40,7 +39,6 @@ public class NoteEditActivity extends AppCompatActivity {
     private NoteIO noteIO;
 
     private NoteList noteList;
-    private int noteIndex;
 
     private Note note;
     private NoteLine deletedLine;
@@ -50,12 +48,13 @@ public class NoteEditActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note_edit);
 
+        //load in the noteList
         noteIO = new NoteIO(this);
 
-        //import the noteList, and index you selected in NoteSelectActivity
-        noteList = (NoteList) getIntent().getSerializableExtra(NoteSelectActivity.NOTE_LIST);
-        noteIndex = (int) getIntent().getSerializableExtra(NoteSelectActivity.SELECTED_NOTE_INDEX);
+        noteList = noteIO.load(new NoteList());
 
+        //take the noteIndex from the intent and fill the note object
+        int noteIndex = (int) getIntent().getSerializableExtra(NoteSelectActivity.SELECTED_NOTE_INDEX);
         note = noteList.getNote(noteIndex);
 
         //toggle the empty message off if note is populated
@@ -73,8 +72,7 @@ public class NoteEditActivity extends AppCompatActivity {
             @Override public void beforeTextChanged(CharSequence s, int i, int j, int k) {}
             @Override public void onTextChanged(CharSequence s, int i, int j, int k) {}
 
-            @Override
-            public void afterTextChanged(Editable editable) {
+            @Override public void afterTextChanged(Editable editable) {
                 note.setTitle(TitleInput.getText().toString());
             }
         });
@@ -126,7 +124,7 @@ public class NoteEditActivity extends AppCompatActivity {
                 new ItemTouchUtil.Actions() {
             @Override public void move(int fromPos, int toPos) {
                 note.moveLine(fromPos, toPos);
-                LineAdapter.notifyDataSetChanged();
+                LineAdapter.notifyItemMoved(fromPos, toPos);
             }
 
             @Override public String delete(int pos) {
@@ -194,16 +192,13 @@ public class NoteEditActivity extends AppCompatActivity {
     }
 
     private void save(){
-        AsyncTask.execute(new Runnable() {
-            @Override public void run() {
-                noteIO.save(noteList);
-            }
-        });
+        noteIO.save(noteList);
 
         //fade in the save icon
         final View SaveIcon  = findViewById(R.id.SaveIcon);
         SaveIcon.setAlpha(1.0f);
 
+        //use a timer to fade out the icon
         final Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override public void run() {

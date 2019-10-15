@@ -23,7 +23,6 @@ public class NoteSelectActivity extends AppCompatActivity
         implements ActivityCompat.OnRequestPermissionsResultCallback {
     public static final int AUTO_LOAD_INTERVAL_MS = 15000;
 
-    public static final String NOTE_LIST = "NoteList";
     public static final String SELECTED_NOTE_INDEX = "SelNoteIndex";
 
     private static final int REQUEST_BACKUP_EXPORT = 101;
@@ -36,7 +35,6 @@ public class NoteSelectActivity extends AppCompatActivity
 
     private NoteSelectAdapter NotesAdapter;
 
-    private AutoInterval interval;
     private NoteIO noteIO;
 
     private NoteList noteList;
@@ -47,7 +45,8 @@ public class NoteSelectActivity extends AppCompatActivity
         setContentView(R.layout.activity_note_select);
 
         noteIO = new NoteIO(this);
-        noteList = noteIO.load();
+
+        noteList = noteIO.load(new NoteList());
 
         //toggle the empty message off if notelist is populated
         EmptyMessage = findViewById(R.id.EmptyNotesMessage);
@@ -104,7 +103,7 @@ public class NoteSelectActivity extends AppCompatActivity
                         //when clicked, open note to edit
                         holder.itemView.setOnClickListener(new View.OnClickListener() {
                             @Override public void onClick(View v) {
-                                noteList = noteIO.load();
+                                noteList = noteIO.load(noteList);
                                 editNote(NoteSelectActivity.this, pos);
                             }
                         });
@@ -122,6 +121,7 @@ public class NoteSelectActivity extends AppCompatActivity
                 new ItemTouchUtil.Actions() {
             @Override public void move(int fromPos, int toPos) {
                 noteList.moveNote(fromPos, toPos);
+                NotesAdapter.notifyItemMoved(fromPos, toPos);
 
                 noteIO.save(noteList);
             }
@@ -156,11 +156,11 @@ public class NoteSelectActivity extends AppCompatActivity
         }, NotesRecycler);
 
         //button to back up all note data
-        AppCompatButton BackupNotes = findViewById(R.id.ViewOptions);
+        AppCompatButton ViewOptions = findViewById(R.id.ViewOptions);
 
         final String[] options = {"Backup all notes", "Recover notes from backup", "Delete old backups"};
 
-        BackupNotes.setOnClickListener(new View.OnClickListener() {
+        ViewOptions.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 AlertUtil.make(NoteSelectActivity.this, "Options", options,
@@ -184,21 +184,6 @@ public class NoteSelectActivity extends AppCompatActivity
             }
         });
 
-        //start a timer that reloads the notes every 15 seconds
-        interval = new AutoInterval(new AutoInterval.Task() {
-            @Override public void run() {
-                noteList = noteIO.load();
-
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        NotesAdapter.notifyDataSetChanged();
-                    }
-                });
-            }
-        }, AUTO_LOAD_INTERVAL_MS);
-        interval.start();
-
         //double tap creates new notes
         GestureUtil.bindGesture(this, NotesRecycler, new GestureUtil.DoubleTap() {
             @Override public void onDoubleTap() {
@@ -208,8 +193,8 @@ public class NoteSelectActivity extends AppCompatActivity
             }
         });
 
+        //if you need a backup, request external write permissions; later, back up
         if(noteIO.needBackup()){
-            //request external write permissions; later, back up the notes
             String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
             requestPermissions(perms, REQUEST_BACKUP_EXPORT);
         }
@@ -232,10 +217,12 @@ public class NoteSelectActivity extends AppCompatActivity
                             final int fi = i;
 
                             //import the selected file
-                            noteList = noteIO.importBackup(options[fi]);
+                            noteList = noteIO.importBackup(noteList, options[fi]);
+                            NotesAdapter.notifyDataSetChanged();
 
                             //save everything
                             noteIO.save(noteList);
+
                         }
                     });
         } else if (c == REQUEST_BACKUP_CULL && r[0] == PackageManager.PERMISSION_GRANTED) {
@@ -248,26 +235,17 @@ public class NoteSelectActivity extends AppCompatActivity
 
         //pass the selected note, switch to the note edit activity, and exit
         Intent intent = new Intent(ctx, NoteEditActivity.class);
-        intent.putExtra(NOTE_LIST, noteList);
         intent.putExtra(SELECTED_NOTE_INDEX, noteIndex);
 
-
-        ctx.startActivity(intent);
+        NoteSelectActivity.this.startActivityForResult(intent, 1);
     }
 
-    @Override public void onResume() {
-        interval.start();
-        super.onResume();
-    }
-
-    @Override public void onPause() {
-        interval.stop();
-        super.onPause();
+    @Override protected void onActivityResult(int req, int res, Intent data){
+        noteList = noteIO.load(noteList);
+        NotesAdapter.notifyDataSetChanged();
     }
 
     @Override public void onDestroy() {
-
-        interval.stop();
         super.onDestroy();
         System.exit(0);
     }

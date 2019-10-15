@@ -32,7 +32,18 @@ public class Note implements Serializable {
     public void removeLine(int line_id){ lines.remove(flip(line_id)); }
 
     public void moveLine(int fromPos, int toPos){
-        Collections.swap(lines, flip(fromPos), flip(toPos));
+        int fp = flip(fromPos);
+        int tp = flip(toPos);
+
+        if (fp < tp) {
+            for (int i = fp; i < tp; i++) {
+                Collections.swap(lines, i, i + 1);
+            }
+        } else {
+            for (int i = fp; i > tp; i--) {
+                Collections.swap(lines, i, i - 1);
+            }
+        }
     }
 
     public void print(){

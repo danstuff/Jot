@@ -23,7 +23,15 @@ public class NoteList implements Serializable {
     public void removeNote(int i){ notes.remove(i); }
 
     public void moveNote(int fromPos, int toPos){
-        Collections.swap(notes, fromPos, toPos);
+        if (fromPos < toPos) {
+            for (int i = fromPos; i < toPos; i++) {
+                Collections.swap(notes, i, i + 1);
+            }
+        } else {
+            for (int i = fromPos; i > toPos; i--) {
+                Collections.swap(notes, i, i - 1);
+            }
+        }
     }
 
     public int getNoteCount(){ return notes.size(); }
