@@ -28,7 +28,7 @@ public class NoteIO {
     private static final String LOCAL_SAVE_FN = "jot.data";
     private static final String NEW_NOTE_TAG = "`~";
 
-    private static final String UNPARSEABLE_FN =  "00_00_00.txt";
+    private static final String NON_PARSEABLE_FN =  "00_00_00.txt";
 
     private AppCompatActivity activity;
 
@@ -157,12 +157,15 @@ public class NoteIO {
         final String bup_name = stamp + ".txt";
 
         File bup =  new File(getBackupFolder(), bup_name);
+        bup.mkdirs();
 
         try{
             saveList = noteList;
             saveStream = new FileOutputStream(bup);
 
             writeFile();
+        } catch(FileNotFoundException e) {
+            System.out.println("Backup file " + bup_name + " not found");
         } catch(Exception e){
             e.printStackTrace();
         }
@@ -197,7 +200,7 @@ public class NoteIO {
             try{
                 file_date_format.parse(bup_names[i]);
             } catch(ParseException e){
-                bup_names[i] = UNPARSEABLE_FN;
+                bup_names[i] = NON_PARSEABLE_FN;
             }
         }
 
@@ -255,7 +258,8 @@ public class NoteIO {
 
             try {
                 //if bup was made before the cull date, delete it
-                if (file_date_format.parse(date_str).before(cull_date)) {
+                Date parsed = file_date_format.parse(date_str);
+                if (parsed != null && parsed.before(cull_date)) {
                     bup_files[i].delete();
                 } 
             } catch (Exception e) {

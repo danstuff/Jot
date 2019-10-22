@@ -34,7 +34,7 @@ public class NoteEditAdapter extends RecyclerView.Adapter<NoteEditAdapter.ViewHo
     }
 
     @Override
-    public NoteEditAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public NoteEditAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         //set the xml formatting of the Recycler's rows to note_row
         View itemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.note_row, parent, false);

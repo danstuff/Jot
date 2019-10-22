@@ -40,8 +40,8 @@ public class ItemTouchUtil {
             }
 
             @Override
-            public int getMovementFlags(RecyclerView recyclerView,
-                                        RecyclerView.ViewHolder viewHolder) {
+            public int getMovementFlags(@NonNull RecyclerView recyclerView,
+                                        @NonNull RecyclerView.ViewHolder viewHolder) {
                 return makeMovementFlags(ItemTouchHelper.UP | ItemTouchHelper.DOWN,
                         ItemTouchHelper.RIGHT);
             }
@@ -79,8 +79,8 @@ public class ItemTouchUtil {
             }
 
             @Override
-            public void onChildDraw(Canvas c, RecyclerView rView,
-                                    RecyclerView.ViewHolder viewHolder,
+            public void onChildDraw(@NonNull Canvas c, @NonNull RecyclerView rView,
+                                    @NonNull RecyclerView.ViewHolder viewHolder,
                                     float dX, float dY, int actionState,
                                     boolean isActive){
                 if(dX > 0){

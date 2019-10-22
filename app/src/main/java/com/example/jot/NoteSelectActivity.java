@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.view.GestureDetector;
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -21,15 +20,11 @@ import androidx.recyclerview.widget.RecyclerView;
 
 public class NoteSelectActivity extends AppCompatActivity
         implements ActivityCompat.OnRequestPermissionsResultCallback {
-    public static final int AUTO_LOAD_INTERVAL_MS = 15000;
-
     public static final String SELECTED_NOTE_INDEX = "SelNoteIndex";
 
     private static final int REQUEST_BACKUP_EXPORT = 101;
     private static final int REQUEST_BACKUP_IMPORT = 102;
     private static final int REQUEST_BACKUP_CULL = 103;
-
-    private GestureDetector gestureDetector;
 
     private TextView EmptyMessage;
 
@@ -57,9 +52,11 @@ public class NoteSelectActivity extends AppCompatActivity
 
         //if some text was sent to Jot, pick a note to add it to
         Intent intent = getIntent();
+        String action = intent.getAction();
+        String type = intent.getType();
 
-        if(intent.getAction().equals(Intent.ACTION_SEND) &&
-                intent.getType().equals("text/plain")){
+        if(action !=  null && action.equals(Intent.ACTION_SEND) &&
+            type != null && type.equals("text/plain")){
             final String new_line = intent.getStringExtra(Intent.EXTRA_TEXT);
             String[] note_options = noteList.getTitles();
 
@@ -214,10 +211,8 @@ public class NoteSelectActivity extends AppCompatActivity
                     "Choose a Backup File", options,
                     new DialogInterface.OnClickListener() {
                         @Override public void onClick(DialogInterface dialogInterface, int i) {
-                            final int fi = i;
-
                             //import the selected file
-                            noteList = noteIO.importBackup(noteList, options[fi]);
+                            noteList = noteIO.importBackup(noteList, options[i]);
                             NotesAdapter.notifyDataSetChanged();
 
                             //save everything

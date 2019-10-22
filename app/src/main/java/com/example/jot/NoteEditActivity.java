@@ -73,7 +73,10 @@ public class NoteEditActivity extends AppCompatActivity {
             @Override public void onTextChanged(CharSequence s, int i, int j, int k) {}
 
             @Override public void afterTextChanged(Editable editable) {
-                note.setTitle(TitleInput.getText().toString());
+                Editable title_text  = TitleInput.getText();
+                if(title_text != null){
+                    note.setTitle(title_text.toString());
+                }
             }
         });
 
@@ -81,10 +84,13 @@ public class NoteEditActivity extends AppCompatActivity {
         if(note.getTitle().isEmpty()){
             TitleInput.requestFocus();
 
+            InputMethodManager imm = (InputMethodManager)
+                    getSystemService(Context.INPUT_METHOD_SERVICE);
+
+            if(imm == null){ return; }
+
             //open the keyboard
-            ((InputMethodManager)
-                    getSystemService(Context.INPUT_METHOD_SERVICE)).
-                    showSoftInput(TitleInput,0);
+            imm.showSoftInput(TitleInput,0);
         }
 
         //find line recycler
@@ -165,16 +171,24 @@ public class NoteEditActivity extends AppCompatActivity {
                             @Override public void run() {
                                 //focus on the new element
                                 LineRecycler.scrollToPosition(0);
-                                View LineView = LineRecycler.getLayoutManager().
-                                        findViewByPosition(0);
+                                RecyclerView.LayoutManager lm = LineRecycler.getLayoutManager();
+
+                                if(lm == null){ return; }
+
+                                View LineView = lm.findViewByPosition(0);
+
+                                if(LineView == null){ return; }
 
                                 EditText LineText = LineView.findViewById(R.id.LineText);
                                 LineText.requestFocus();
 
+                                InputMethodManager imm = (InputMethodManager)
+                                        getSystemService(Context.INPUT_METHOD_SERVICE);
+
+                                if(imm == null){ return; }
+
                                 //open the keyboard
-                                ((InputMethodManager)
-                                        getSystemService(Context.INPUT_METHOD_SERVICE)).
-                                        showSoftInput(LineText,0);
+                                imm.showSoftInput(LineText,0);
                             }
                         });
                     }

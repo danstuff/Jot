@@ -14,16 +14,4 @@ public class AlertUtil{
                 .create();
         dialog.show();
     }
-
-    public static void make(Activity activity, String title, String message,
-                            String positive, DialogInterface.OnClickListener pos,
-                            String negative, DialogInterface.OnClickListener neg){
-        AlertDialog dialog = new AlertDialog.Builder(activity)
-                .setTitle(title)
-                .setMessage(message)
-                .setPositiveButton(positive, pos)
-                .setNegativeButton(negative, neg)
-                .create();
-        dialog.show();
-    }
 }
