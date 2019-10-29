@@ -1,4 +1,4 @@
-package com.example.jot;
+package com.yost.jot;
 
 import android.app.Activity;
 import android.view.GestureDetector;

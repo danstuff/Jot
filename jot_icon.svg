@@ -14,8 +14,11 @@
    viewBox="0 0 139.50368 139.50368"
    id="svg2"
    version="1.1"
-   inkscape:version="0.92.4 (f8dce91, 2019-08-02)"
-   sodipodi:docname="jot_icon.svg">
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   sodipodi:docname="jot_icon.svg"
+   inkscape:export-filename="/home/dan/Projects/jot/jot_icon_hires.png"
+   inkscape:export-xdpi="330.31387"
+   inkscape:export-ydpi="330.31387">
   <defs
      id="defs4" />
   <sodipodi:namedview
@@ -26,8 +29,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="3.0416876"
-     inkscape:cx="67.341911"
-     inkscape:cy="69.872716"
+     inkscape:cx="46.629725"
+     inkscape:cy="65.927538"
      inkscape:document-units="px"
      inkscape:current-layer="g4165"
      showgrid="false"
@@ -36,9 +39,9 @@
      inkscape:object-nodes="true"
      inkscape:snap-intersection-paths="true"
      inkscape:snap-global="true"
-     inkscape:window-width="1366"
-     inkscape:window-height="713"
-     inkscape:window-x="0"
+     inkscape:window-width="1920"
+     inkscape:window-height="1025"
+     inkscape:window-x="1600"
      inkscape:window-y="27"
      inkscape:window-maximized="1"
      inkscape:snap-page="true"
@@ -54,7 +57,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -68,16 +71,8 @@
       <g
          id="g4165"
          transform="matrix(1.367029,1.367029,-1.367029,1.367029,1330.6378,-396.76783)">
-        <rect
-           id="rect13"
-           width="72.159401"
-           height="72.159401"
-           x="-701.08618"
-           y="690.2179"
-           transform="rotate(-45)"
-           style="fill:#6a5fcc;fill-opacity:0.98395721;stroke-width:0.75166041" />
         <path
-           style="fill:#eaeaea;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.89717102;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           style="fill:#eaeaea;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.96985888;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
            d="m 20.31379,979.42785 42.575043,-0.78934 8.314343,4.69641 -8.137332,4.7976 -42.928194,0.79589 z"
            id="path4144"
            inkscape:connector-curvature="0"
@@ -86,21 +81,21 @@
            inkscape:connector-curvature="0"
            id="path4159"
            d="m 55.046062,978.78391 -0.106798,9.47922"
-           style="fill:#eaeaea;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.89717102;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+           style="fill:#eaeaea;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.96985888;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
            sodipodi:nodetypes="cc" />
         <circle
            r="4.6412196"
            cy="984.95227"
            cx="61.22414"
            id="path4161"
-           style="opacity:1;fill:#eaeaea;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.89816689;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+           style="opacity:1;fill:#eaeaea;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.97019231;stroke-linecap:square;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
            transform="matrix(0.99982818,-0.01853679,-0.01853679,0.99982818,0,0)" />
         <path
            sodipodi:nodetypes="csc"
            inkscape:connector-curvature="0"
            id="path4163"
            d="m 32.077947,979.20974 c -0.0017,4.36708 0.22517,7.25684 -1.190755,8.55936 -1.637985,1.50681 -4.668741,0.60112 -4.543077,-2.12897"
-           style="fill:#eaeaea;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:2.89717102;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+           style="fill:#eaeaea;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0.96985888;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
       </g>
     </g>
   </g>

@@ -20,7 +20,7 @@
         android:height="60dp"
         android:background="@drawable/corner_button"
         android:drawableStart="@drawable/ic_gear"
-        android:drawableTint="@color/colorIcons"
+        android:drawableTint="@color/colorBackground"
         android:elevation="8dp"
         android:minWidth="60dp"
         android:minHeight="60dp"

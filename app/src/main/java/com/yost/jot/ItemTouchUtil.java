@@ -1,4 +1,4 @@
-package com.example.jot;
+package com.yost.jot;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -73,7 +73,7 @@ public class ItemTouchUtil {
                         actions.undoDelete();
                     }
                 });
-                sb.getView().setBackgroundColor(ContextCompat.getColor(ctx, R.color.colorIcons));
+                sb.getView().setBackgroundColor(ContextCompat.getColor(ctx, R.color.colorNavbar));
                 sb.setActionTextColor(Color.BLACK);
                 sb.show();
             }

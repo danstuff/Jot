@@ -1,4 +1,4 @@
-package com.example.jot;
+package com.yost.jot;
 
 import android.view.LayoutInflater;
 import android.view.View;

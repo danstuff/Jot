@@ -1,4 +1,4 @@
-package com.example.jot;
+package com.yost.jot;
 
 import android.content.Context;
 import android.os.AsyncTask;

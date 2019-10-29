@@ -1,10 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="colorPrimary">#6A5FCC</color>
-    <color name="colorPrimaryDark">#1C2044</color>
-    <color name="colorAccent">#4A358A</color>
     <color name="colorBackground">#FFFFFF</color>
-    <color name="colorIcons">#ECECEC</color>
+    <color name="colorNavbar">#DBDBDB</color>
     <color name="colorText">#1B0707</color>
-    <color name="colorDelete">#DB3B53</color>
+    <color name="colorDelete">#C91934</color>
 </resources>

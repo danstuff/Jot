@@ -1,4 +1,4 @@
-package com.example.jot;
+package com.yost.jot;
 
 import java.util.Timer;
 import java.util.TimerTask;

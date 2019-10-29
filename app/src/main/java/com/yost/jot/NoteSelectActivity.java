@@ -1,4 +1,4 @@
-package com.example.jot;
+package com.yost.jot;
 
 import android.Manifest;
 import android.content.Context;
