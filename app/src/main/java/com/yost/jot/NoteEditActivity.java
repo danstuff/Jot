@@ -15,6 +15,9 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.textfield.TextInputEditText;
+import com.yost.jot.util.AutoInterval;
+import com.yost.jot.util.GestureUtil;
+import com.yost.jot.util.ItemTouchUtil;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -47,6 +50,8 @@ public class NoteEditActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note_edit);
+
+        ColorUpdater.updateColors(this);
 
         //load in the noteList
         noteIO = new NoteIO(this);

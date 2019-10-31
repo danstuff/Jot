@@ -18,6 +18,10 @@ import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.yost.jot.util.AlertUtil;
+import com.yost.jot.util.GestureUtil;
+import com.yost.jot.util.ItemTouchUtil;
+
 public class NoteSelectActivity extends AppCompatActivity
         implements ActivityCompat.OnRequestPermissionsResultCallback {
     public static final String SELECTED_NOTE_INDEX = "SelNoteIndex";
@@ -38,6 +42,8 @@ public class NoteSelectActivity extends AppCompatActivity
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note_select);
+
+        ColorUpdater.updateColors(this);
 
         noteIO = new NoteIO(this);
 
@@ -155,29 +161,10 @@ public class NoteSelectActivity extends AppCompatActivity
         //button to back up all note data
         AppCompatButton ViewOptions = findViewById(R.id.ViewOptions);
 
-        final String[] options = {"Backup all notes", "Recover notes from backup", "Delete old backups"};
-
         ViewOptions.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                AlertUtil.make(NoteSelectActivity.this, "Options", options,
-                    new DialogInterface.OnClickListener() {
-                        @Override public void onClick(DialogInterface dialogInterface, int i) {
-                            if (i == 0) {
-                                //request external write permissions; later, back up the notes
-                                String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
-                                requestPermissions(perms, REQUEST_BACKUP_EXPORT);
-                            } else if (i == 1) {
-                                //request external read permissions; later, recover from backup
-                                String[] perms = {Manifest.permission.READ_EXTERNAL_STORAGE};
-                                requestPermissions(perms, REQUEST_BACKUP_IMPORT);
-                            } else if(i == 2){
-                                //request external read permissions; later, recover from backup
-                                String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
-                                requestPermissions(perms, REQUEST_BACKUP_CULL);
-                            }
-                        }
-                    });
+            @Override public void onClick(View view) {
+                Intent intent = new Intent(view.getContext(), SettingsActivity.class);
+                NoteSelectActivity.this.startActivityForResult(intent, 2);
             }
         });
 
@@ -236,6 +223,10 @@ public class NoteSelectActivity extends AppCompatActivity
     }
 
     @Override protected void onActivityResult(int req, int res, Intent data){
+        super.onActivityResult(req, res, data);
+
+        ColorUpdater.updateColors(this);
+
         noteList = noteIO.load(noteList);
         NotesAdapter.notifyDataSetChanged();
     }

@@ -1,4 +1,4 @@
-package com.yost.jot;
+package com.yost.jot.util;
 
 import android.app.Activity;
 import android.app.AlertDialog;

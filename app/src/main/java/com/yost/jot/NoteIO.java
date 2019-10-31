@@ -38,7 +38,6 @@ public class NoteIO {
     private NoteList saveList;
     private FileOutputStream saveStream;
 
-
     public NoteIO(AppCompatActivity activity){
         this.activity = activity;
 

@@ -20,12 +20,12 @@
         android:height="60dp"
         android:background="@drawable/corner_button"
         android:drawableStart="@drawable/ic_gear"
-        android:drawableTint="@color/colorBackground"
+        android:drawableTint="@color/colorHeaderText"
         android:elevation="8dp"
         android:minWidth="60dp"
         android:minHeight="60dp"
         android:paddingStart="13dp"
         android:paddingEnd="0dp"
-        app:backgroundTint="@color/colorPrimary" />
+        app:backgroundTint="@color/colorHeader" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

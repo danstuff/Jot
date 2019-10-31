@@ -1,4 +1,4 @@
-package com.yost.jot;
+package com.yost.jot.util;
 
 import android.app.Activity;
 import android.view.GestureDetector;
@@ -8,11 +8,11 @@ import android.view.View;
 import androidx.recyclerview.widget.RecyclerView;
 
 public class GestureUtil {
-    interface DoubleTap{
+    public interface DoubleTap{
         void onDoubleTap();
     }
 
-    static void bindGesture(Activity act, RecyclerView recycler, final DoubleTap doubleTap){
+    public static void bindGesture(Activity act, RecyclerView recycler, final DoubleTap doubleTap){
         final GestureDetector gestureDetector = new GestureDetector(act, new GestureDetector.SimpleOnGestureListener(){
             @Override public boolean onDoubleTap(MotionEvent e){
                 doubleTap.onDoubleTap();

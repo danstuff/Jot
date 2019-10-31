@@ -1,4 +1,4 @@
-package com.yost.jot;
+package com.yost.jot.util;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -13,9 +13,10 @@ import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.snackbar.Snackbar;
+import com.yost.jot.R;
 
 public class ItemTouchUtil {
-    interface Actions{
+    public interface Actions{
         void move(int fromPos, int toPos);
         String delete(int pos);
         void undoDelete();

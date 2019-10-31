@@ -1,10 +1,10 @@
-package com.yost.jot;
+package com.yost.jot.util;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class AutoInterval {
-    interface Task {
+    public interface Task {
         void run();
     }
 

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#6A5FCC</color>
+    <color name="colorHeader">#000000</color>
     <color name="colorBackground">#FFFFFF</color>
     <color name="colorNavbar">#DBDBDB</color>
-    <color name="colorText">#1B0707</color>
+    <color name="colorMainText">#000000</color>
+    <color name="colorHeaderText">#FFFFFF</color>
     <color name="colorDelete">#C91934</color>
 </resources>

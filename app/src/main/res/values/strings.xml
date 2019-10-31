@@ -1,3 +1,41 @@
 <resources>
     <string name="app_name">Jot</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+
+    <!-- Note Edit Activity -->
+    <string name="title_hint">Title</string>
+    <string name="gesture_guide_lines">Double tap to create new lines</string>
+
+    <!-- Note Select Activity -->
+    <string name="gesture_guide_notes">Double tap to create new notes</string>
+
+    <!-- App Preferences -->
+    <string name="preferences_header">Settings</string>
+
+    <string name="app_theme_header">App Theme</string>
+
+    <string name="app_theme_header_color">Header Color</string>
+    <string name="app_theme_background_color">Background Color</string>
+
+    <string name="backup_header">Backup Options</string>
+
+    <string name="backup_notes">Backup All Notes</string>
+    <string name="backup_recover">Recover Notes from Backup</string>
+    <string name="backup_delete">Delete Old Backups After…</string>
+    <string name="title_activity_settings2">Settings</string>
+
+    <!-- Preference Titles -->
+    <string name="messages_header">Messages</string>
+    <string name="sync_header">Sync</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails
+    </string>
+    <string name="attachment_summary_off">Only download attachments when manually requested</string>
 </resources>

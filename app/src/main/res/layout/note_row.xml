@@ -12,7 +12,7 @@
         android:layout_marginTop="10dp"
         android:scrollHorizontally="false"
         android:background="@null"
-        android:textColor="@color/colorText"
+        android:textColor="@color/colorMainText"
         android:inputType="textCapSentences"
         android:singleLine="true" />
 
@@ -24,7 +24,7 @@
         android:layout_marginStart="-50dp"
         android:background="#00FFFFFF"
         android:backgroundTint="#00FFFFFF"
-        android:textColor="@color/colorText"
+        android:textColor="@color/colorMainText"
         android:text="["
         android:textAppearance="@style/TextAppearance.AppCompat.Display1" />
 
@@ -35,7 +35,7 @@
         android:layout_alignEnd="@id/LineText"
         android:layout_marginEnd="-50dp"
         android:background="#00FFFFFF"
-        android:textColor="@color/colorText"
+        android:textColor="@color/colorMainText"
         android:text="]"
         android:textAppearance="@style/TextAppearance.AppCompat.Display1" />
 
