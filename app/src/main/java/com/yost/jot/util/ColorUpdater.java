@@ -1,4 +1,4 @@
-package com.yost.jot;
+package com.yost.jot.util;
 
 import android.app.Activity;
 import android.content.SharedPreferences;
@@ -7,6 +7,8 @@ import android.graphics.Color;
 import android.view.View;
 import android.view.Window;
 import androidx.preference.PreferenceManager;
+
+import com.yost.jot.R;
 
 public class ColorUpdater {
     private static final float DARKEN_FACTOR = 0.75f;
@@ -28,11 +30,21 @@ public class ColorUpdater {
         Window window = activity.getWindow();
 
         //get header and background colors
-        String headerColorStr = sPrefs.getString("header_color", "#6A5FCC");
-        int headerColor = Color.parseColor(headerColorStr);
+        String headerColorStr = sPrefs.getString("header_color", "#000000");
+        int headerColor = Color.BLACK;
+        try{
+            headerColor = Color.parseColor(headerColorStr);
+        } catch (IllegalArgumentException e){
+            System.out.println("[WARNING] Could not parse header color, using default");
+        }
 
         String backgroundColorStr = sPrefs.getString("background_color", "#FFFFFF");
-        int backgroundColor = Color.parseColor(backgroundColorStr);
+        int backgroundColor = Color.WHITE;
+        try{
+            backgroundColor = Color.parseColor(backgroundColorStr);
+        } catch (IllegalArgumentException e){
+            System.out.println("[WARNING] Could not parse background color, using default");
+        }
 
         //find the root view of the activity and set its background color
         View rootView = window.getDecorView().getRootView();
@@ -42,6 +54,17 @@ public class ColorUpdater {
         View optsButton = activity.findViewById(R.id.ViewOptions);
         if(optsButton != null){
             optsButton.setBackgroundTintList(ColorStateList.valueOf(headerColor));
+        }
+
+        //set recyclerview background colors
+        View recyclerNotes = activity.findViewById(R.id.NotesRecycler);
+        if(recyclerNotes != null){
+            recyclerNotes.setBackgroundColor(backgroundColor);
+        }
+
+        View recyclerLines = activity.findViewById(R.id.LineRecycler);
+        if(recyclerLines != null){
+            recyclerLines.setBackgroundColor(backgroundColor);
         }
 
         //set editText header color, if one exists

@@ -16,6 +16,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.yost.jot.util.AutoInterval;
+import com.yost.jot.util.ColorUpdater;
 import com.yost.jot.util.GestureUtil;
 import com.yost.jot.util.ItemTouchUtil;
 

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.View;
@@ -14,11 +15,13 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 import androidx.core.app.ActivityCompat;
+import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.yost.jot.util.AlertUtil;
+import com.yost.jot.util.ColorUpdater;
 import com.yost.jot.util.GestureUtil;
 import com.yost.jot.util.ItemTouchUtil;
 
@@ -27,8 +30,6 @@ public class NoteSelectActivity extends AppCompatActivity
     public static final String SELECTED_NOTE_INDEX = "SelNoteIndex";
 
     private static final int REQUEST_BACKUP_EXPORT = 101;
-    private static final int REQUEST_BACKUP_IMPORT = 102;
-    private static final int REQUEST_BACKUP_CULL = 103;
 
     private TextView EmptyMessage;
 
@@ -186,29 +187,9 @@ public class NoteSelectActivity extends AppCompatActivity
 
     @Override
     public void onRequestPermissionsResult(int c, @NonNull String[] p, @NonNull int[] r) {
+        //back up the notes if you got permission for external file saving
         if (c == REQUEST_BACKUP_EXPORT && r[0] == PackageManager.PERMISSION_GRANTED) {
-            //back up the notes if you got permission for external file saving
             noteIO.exportBackup(noteList);
-
-        } else if (c == REQUEST_BACKUP_IMPORT && r[0] == PackageManager.PERMISSION_GRANTED) {
-            //fetch all backup names and ask user to pick one
-            final String[] options = noteIO.getBackupNames();
-
-            AlertUtil.make(NoteSelectActivity.this,
-                    "Choose a Backup File", options,
-                    new DialogInterface.OnClickListener() {
-                        @Override public void onClick(DialogInterface dialogInterface, int i) {
-                            //import the selected file
-                            noteList = noteIO.importBackup(noteList, options[i]);
-                            NotesAdapter.notifyDataSetChanged();
-
-                            //save everything
-                            noteIO.save(noteList);
-
-                        }
-                    });
-        } else if (c == REQUEST_BACKUP_CULL && r[0] == PackageManager.PERMISSION_GRANTED) {
-            noteIO.cleanBackupDir();
         }
     }
 

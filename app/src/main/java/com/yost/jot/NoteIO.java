@@ -1,7 +1,6 @@
 package com.yost.jot;
 
 import android.content.Context;
-import android.os.AsyncTask;
 import android.os.Environment;
 import android.widget.Toast;
 
@@ -23,8 +22,6 @@ import java.util.Date;
 import java.util.Locale;
 
 public class NoteIO {
-    private static final int CULL_AFTER_DAYS = 10;
-
     private static final String LOCAL_SAVE_FN = "jot.data";
     private static final String NEW_NOTE_TAG = "`~";
 
@@ -107,35 +104,30 @@ public class NoteIO {
 
 
     private void writeFile(){
-        AsyncTask.execute(new Runnable(){
-            @Override public void run(){
-                try {
-                    //create output stream
-                    OutputStreamWriter outWriter = new OutputStreamWriter(saveStream);
+        try {
+            //create output stream
+            OutputStreamWriter outWriter = new OutputStreamWriter(saveStream);
 
-                    //iterate through each note and write it line by line
-                    for(int i = 0; i < saveList.getNoteCount(); i++){
-                        Note note = saveList.getNote(i);
+            //iterate through each note and write it line by line
+            for(int i = 0; i < saveList.getNoteCount(); i++){
+                Note note = saveList.getNote(i);
 
 
-                        //output the fixed title
-                        outWriter.write(NEW_NOTE_TAG + note.getTitle() +"\n");
+                //output the fixed title
+                outWriter.write(NEW_NOTE_TAG + note.getTitle() +"\n");
 
-                        for(int j = note.getLineCount()-1; j >= 0; j--){
-                            outWriter.write(note.getLine(j).getContent() + "\n");
-                        }
-
-                        outWriter.write("\n");
-                    }
-
-                    outWriter.close();
-                    saveStream.close();
-                } catch (Throwable t){
-                    t.printStackTrace();
+                for(int j = note.getLineCount()-1; j >= 0; j--){
+                    outWriter.write(note.getLine(j).getContent() + "\n");
                 }
-            }
-        });
 
+                outWriter.write("\n");
+            }
+
+            outWriter.close();
+            saveStream.close();
+        } catch (Throwable t){
+            t.printStackTrace();
+        }
     }
 
     public void save(NoteList noteList){
@@ -156,7 +148,6 @@ public class NoteIO {
         final String bup_name = stamp + ".txt";
 
         File bup =  new File(getBackupFolder(), bup_name);
-        bup.mkdirs();
 
         try{
             saveList = noteList;
@@ -177,10 +168,14 @@ public class NoteIO {
         //find documents directory, create new file in a subfolder
         File home_dir = Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_DOCUMENTS);
+        System.out.println(home_dir.toString());
 
         //create directories if they don't exist
         File bup_folder = new File(home_dir.getPath() + File.separator + "jot_backups");
-        bup_folder.mkdirs();
+
+        if(!bup_folder.exists()){
+            bup_folder.mkdirs();
+        }
 
         return bup_folder;
     }
@@ -239,11 +234,11 @@ public class NoteIO {
         return true;
     }
 
-    public void cleanBackupDir() {
+    public void cleanBackupDir(int cull_after_days) {
         //find a time before the current date
         Calendar cal = Calendar.getInstance();
         cal.setTime(today);
-        cal.add(Calendar.DATE, -CULL_AFTER_DAYS);
+        cal.add(Calendar.DATE, -cull_after_days);
 
         Date cull_date = cal.getTime();
 
@@ -266,7 +261,7 @@ public class NoteIO {
             }
         }
 
-        showText("Deleted all backups older than " + CULL_AFTER_DAYS + " days");
+        showText("Deleted all backups older than " + cull_after_days + " days");
     }
 
 

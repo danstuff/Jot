@@ -6,4 +6,6 @@
     <color name="colorMainText">#000000</color>
     <color name="colorHeaderText">#FFFFFF</color>
     <color name="colorDelete">#C91934</color>
+    <color name="darken">#07000000</color>
+    <color name="none">#00000000</color>
 </resources>

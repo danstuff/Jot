@@ -84,10 +84,11 @@ public class ItemTouchUtil {
                                     @NonNull RecyclerView.ViewHolder viewHolder,
                                     float dX, float dY, int actionState,
                                     boolean isActive){
+
+                View iv = viewHolder.itemView;
+
                 if(dX > 0){
                     //draw a red background behind the element with a delete icon
-                    View iv = viewHolder.itemView;
-
                     int vert_margin = (viewHolder.itemView.getHeight() -
                             deleteIcon.getIntrinsicHeight()) / 2;
 
@@ -106,6 +107,12 @@ public class ItemTouchUtil {
 
                     deleteIcon.draw(c);
                     c.restore();
+                }
+
+                if(isActive){
+                    iv.setBackgroundColor(ContextCompat.getColor(ctx, R.color.darken));
+                } else {
+                    iv.setBackgroundColor(ContextCompat.getColor(ctx, R.color.none));
                 }
 
                 super.onChildDraw(c, rView, viewHolder, dX, dY, actionState, isActive);

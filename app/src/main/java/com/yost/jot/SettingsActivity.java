@@ -2,6 +2,7 @@ package com.yost.jot;
 
 import android.Manifest;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
@@ -11,8 +12,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
 
 import com.yost.jot.util.AlertUtil;
+import com.yost.jot.util.ColorUpdater;
 
 public class SettingsActivity extends AppCompatActivity
         implements ActivityCompat.OnRequestPermissionsResultCallback{
@@ -22,6 +25,8 @@ public class SettingsActivity extends AppCompatActivity
 
     private NoteIO noteIO;
     private NoteList noteList;
+
+    public static SettingsActivity settingsInstance;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +41,8 @@ public class SettingsActivity extends AppCompatActivity
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
 
+        settingsInstance = this;
+
         ColorUpdater.updateColors(this);
 
         noteIO = new NoteIO(this);
@@ -47,6 +54,28 @@ public class SettingsActivity extends AppCompatActivity
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
 
+            Preference headerColor = findPreference("header_color");
+            if(headerColor != null){
+                headerColor.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                    @Override
+                    public boolean onPreferenceChange(Preference preference, Object newValue) {
+                        ColorUpdater.updateColors(settingsInstance);
+                        return true;
+                    }
+                });
+            }
+
+            Preference backgroundColor = findPreference("background_color");
+            if(backgroundColor != null){
+                backgroundColor.setOnPreferenceChangeListener(new Preference.OnPreferenceChangeListener() {
+                    @Override
+                    public boolean onPreferenceChange(Preference preference, Object newValue) {
+                        ColorUpdater.updateColors(settingsInstance);
+                        return true;
+                    }
+                });
+            }
+
             Preference backup = findPreference("backup_all_notes");
             if(backup != null){
                 backup.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
@@ -54,7 +83,7 @@ public class SettingsActivity extends AppCompatActivity
                     public boolean onPreferenceClick(Preference preference) {
                         //request external write permissions; later, back up the notes
                         String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
-                        requestPermissions(perms, REQUEST_BACKUP_EXPORT);
+                        settingsInstance.requestPermissions(perms, REQUEST_BACKUP_EXPORT);
                         return true;
                     }
                 });
@@ -67,7 +96,7 @@ public class SettingsActivity extends AppCompatActivity
                     public boolean onPreferenceClick(Preference preference) {
                         //request external read permissions; later, recover from backup
                         String[] perms = {Manifest.permission.READ_EXTERNAL_STORAGE};
-                        requestPermissions(perms, REQUEST_BACKUP_IMPORT);
+                        settingsInstance.requestPermissions(perms, REQUEST_BACKUP_IMPORT);
                         return true;
                     }
                 });
@@ -80,7 +109,7 @@ public class SettingsActivity extends AppCompatActivity
                     public boolean onPreferenceChange(Preference preference, Object newValue) {
                         //request external read permissions; later, recover from backup
                         String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
-                        requestPermissions(perms, REQUEST_BACKUP_CULL);
+                        settingsInstance.requestPermissions(perms, REQUEST_BACKUP_CULL);
                         return true;
                     }
                 });
@@ -110,8 +139,14 @@ public class SettingsActivity extends AppCompatActivity
 
                         }
                     });
+
         } else if (c == REQUEST_BACKUP_CULL && r[0] == PackageManager.PERMISSION_GRANTED) {
-            noteIO.cleanBackupDir();
+            SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(this);
+            int cull_days = sPrefs.getInt("backup_delete_old_notes", 10);
+
+            if(cull_days > 0){
+                noteIO.cleanBackupDir(cull_days);
+            }
         }
     }
 

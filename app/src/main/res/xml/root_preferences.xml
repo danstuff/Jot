@@ -22,13 +22,14 @@
             app:key="header_color"
             app:title="@string/app_theme_header_color"
             app:useSimpleSummaryProvider="true"
-            app:defaultValue="#6A5FCC"/>
+            app:defaultValue="black"/>
 
         <EditTextPreference
             app:key="background_color"
             app:title="@string/app_theme_background_color"
             app:useSimpleSummaryProvider="true"
-            app:defaultValue="#FFFFFF"/>
+            app:defaultValue="white"
+            app:singleLineTitle="true"/>
 
     </PreferenceCategory>
 
