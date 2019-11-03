@@ -1,11 +1,13 @@
 package com.yost.jot.util;
 
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.view.View;
+import android.view.Window;
 
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
@@ -25,7 +27,7 @@ public class ItemTouchUtil {
     private static ColorDrawable colorBackground;
     private static Drawable deleteIcon;
 
-    public static void bind(final Context ctx, final Actions actions, RecyclerView recyclerView){
+    public static void bind(final Activity ctx, final Actions actions, RecyclerView recyclerView){
         colorBackground = new ColorDrawable(ctx.getColor(R.color.colorDelete));
         deleteIcon = ctx.getDrawable(android.R.drawable.ic_menu_delete);
 
@@ -74,7 +76,7 @@ public class ItemTouchUtil {
                         actions.undoDelete();
                     }
                 });
-                sb.getView().setBackgroundColor(ContextCompat.getColor(ctx, R.color.colorNavbar));
+                sb.getView().setBackgroundColor(ctx.getWindow().getNavigationBarColor());
                 sb.setActionTextColor(Color.BLACK);
                 sb.show();
             }

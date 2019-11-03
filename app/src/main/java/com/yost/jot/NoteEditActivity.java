@@ -47,6 +47,8 @@ public class NoteEditActivity extends AppCompatActivity {
     private Note note;
     private NoteLine deletedLine;
 
+    private int save_ticks_left;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -216,7 +218,9 @@ public class NoteEditActivity extends AppCompatActivity {
 
         //fade in the save icon
         final View SaveIcon  = findViewById(R.id.SaveIcon);
-        SaveIcon.setAlpha(1.0f);
+        SaveIcon.setAlpha(0);
+
+        save_ticks_left = 160;
 
         //use a timer to fade out the icon
         final Timer timer = new Timer();
@@ -225,13 +229,14 @@ public class NoteEditActivity extends AppCompatActivity {
                 runOnUiThread(new Runnable() {
                     @Override public void run() {
                         //tween the alpha towards 0
-                        float a = SaveIcon.getAlpha()*SAVE_ICON_FADE_RATE;
+                        float a = (float) (Math.abs(Math.sin(save_ticks_left * Math.PI/80)));
 
                         //cancel the timer when close to 0
-                        if(a < 0.01) {
+                        if(save_ticks_left <= 0) {
                             SaveIcon.setAlpha(0);
                             timer.cancel();
                         } else {
+                            save_ticks_left -= 1;
                             SaveIcon.setAlpha(a);
                         }
                     }

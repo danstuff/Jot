@@ -11,7 +11,7 @@ import androidx.preference.PreferenceManager;
 import com.yost.jot.R;
 
 public class ColorUpdater {
-    private static final float DARKEN_FACTOR = 0.75f;
+    private static final float DARKEN_FACTOR = 0.9f;
 
     private static int darken(int color){
         int r = Math.round(Color.red(color) * DARKEN_FACTOR);
