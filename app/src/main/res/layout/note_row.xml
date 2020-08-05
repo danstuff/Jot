@@ -25,18 +25,7 @@
         android:background="#00FFFFFF"
         android:backgroundTint="#00FFFFFF"
         android:textColor="@color/colorMainText"
-        android:text="["
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1" />
-
-    <Button
-        android:id="@+id/GripRight"
-        android:layout_width="50dp"
-        android:layout_height="wrap_content"
-        android:layout_alignEnd="@id/LineText"
-        android:layout_marginEnd="-50dp"
-        android:background="#00FFFFFF"
-        android:textColor="@color/colorMainText"
-        android:text="]"
+        android:text="0"
         android:textAppearance="@style/TextAppearance.AppCompat.Display1" />
 
 </RelativeLayout>

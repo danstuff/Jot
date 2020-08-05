@@ -18,7 +18,7 @@
         android:layout_gravity="end|top"
         android:width="60dp"
         android:height="60dp"
-        android:background="@drawable/corner_button"
+        android:background="@drawable/corner_button_top"
         android:drawableStart="@drawable/ic_gear"
         android:drawableTint="@color/colorHeaderText"
         android:elevation="8dp"

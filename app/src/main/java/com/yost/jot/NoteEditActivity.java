@@ -112,6 +112,7 @@ public class NoteEditActivity extends AppCompatActivity {
                     //fetch note from list; set the holder's LineText entry
                     String content_str = note.getLine(pos).getContent();
                     holder.LineText.setText(content_str);
+                    holder.GripLeft.setText(pos);
                 }
             },
             new NoteEditAdapter.NoteUpdateInterface() {
