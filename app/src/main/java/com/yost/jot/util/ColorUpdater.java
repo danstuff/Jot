@@ -5,8 +5,10 @@ import android.content.SharedPreferences;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import androidx.preference.PreferenceManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.yost.jot.R;
 
@@ -24,30 +26,29 @@ public class ColorUpdater {
                 Math.min(b,255));
     }
 
-    public static void updateColors(Activity activity){
+    public static int getColor(String key, String default_val, int default_color, Activity activity){
         SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(activity);
 
-        Window window = activity.getWindow();
-
-        //get header and background colors
-        String headerColorStr = sPrefs.getString("header_color", "#000000");
-        int headerColor = Color.BLACK;
+        String headerColorStr = sPrefs.getString(key, default_val);
+        int headerColor = default_color;
         try{
             headerColor = Color.parseColor(headerColorStr);
         } catch (IllegalArgumentException e){
             System.out.println("[WARNING] Could not parse header color, using default");
         }
 
-        String backgroundColorStr = sPrefs.getString("background_color", "#FFFFFF");
-        int backgroundColor = Color.WHITE;
-        try{
-            backgroundColor = Color.parseColor(backgroundColorStr);
-        } catch (IllegalArgumentException e){
-            System.out.println("[WARNING] Could not parse background color, using default");
-        }
+        return headerColor;
+    }
+
+    public static void updateColors(Activity activity){
+        Window window = activity.getWindow();
+
+        //get header and background colors
+        int headerColor = getColor("header_color", "black", Color.BLACK, activity);
+        int backgroundColor = getColor("background_color", "white", Color.WHITE, activity);
 
         //find the root view of the activity and set its background color
-        View rootView = window.getDecorView().getRootView();
+        ViewGroup rootView = (ViewGroup) window.getDecorView().getRootView();
         rootView.setBackgroundColor(backgroundColor);
 
         //set settings button color, if one exists
@@ -57,12 +58,12 @@ public class ColorUpdater {
         }
 
         //set recyclerview background colors
-        View recyclerNotes = activity.findViewById(R.id.NotesRecycler);
+        RecyclerView recyclerNotes = activity.findViewById(R.id.NotesRecycler);
         if(recyclerNotes != null){
             recyclerNotes.setBackgroundColor(backgroundColor);
         }
 
-        View recyclerLines = activity.findViewById(R.id.LineRecycler);
+        RecyclerView recyclerLines = activity.findViewById(R.id.LineRecycler);
         if(recyclerLines != null){
             recyclerLines.setBackgroundColor(backgroundColor);
         }

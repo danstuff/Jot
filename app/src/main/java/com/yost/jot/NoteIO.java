@@ -25,7 +25,7 @@ public class NoteIO {
     private static final String LOCAL_SAVE_FN = "jot.data";
     private static final String NEW_NOTE_TAG = "`~";
 
-    private static final String NON_PARSEABLE_FN =  "00_00_00.txt";
+    private static final String NON_PARSEABLE_FN =  "00_00_00 - 00:00.txt";
 
     private AppCompatActivity activity;
 
@@ -38,7 +38,7 @@ public class NoteIO {
     public NoteIO(AppCompatActivity activity){
         this.activity = activity;
 
-        this.file_date_format = new SimpleDateFormat("MM_dd_yy", Locale.US);
+        this.file_date_format = new SimpleDateFormat("MM_dd_yy - HH:mm", Locale.US);
         this.today = new Date();
     }
 
@@ -107,11 +107,11 @@ public class NoteIO {
         try {
             //create output stream
             OutputStreamWriter outWriter = new OutputStreamWriter(saveStream);
+            outWriter.write("");
 
             //iterate through each note and write it line by line
             for(int i = 0; i < saveList.getNoteCount(); i++){
                 Note note = saveList.getNote(i);
-
 
                 //output the fixed title
                 outWriter.write(NEW_NOTE_TAG + note.getTitle() +"\n");
@@ -122,6 +122,9 @@ public class NoteIO {
 
                 outWriter.write("\n");
             }
+
+            saveStream.flush();
+            outWriter.flush();
 
             outWriter.close();
             saveStream.close();
@@ -190,12 +193,6 @@ public class NoteIO {
 
         for(int i = 0; i < bup_files.length; i++){
             bup_names[i] = bup_files[i].getName();
-
-            try{
-                file_date_format.parse(bup_names[i]);
-            } catch(ParseException e){
-                bup_names[i] = NON_PARSEABLE_FN;
-            }
         }
 
         Arrays.sort(bup_names);
@@ -210,28 +207,12 @@ public class NoteIO {
         if(names.length <= 0) return true;
 
         String last_name = names[names.length-1].replace(".txt","");
+        String last_day = last_name.split(" - ")[0];
 
-        try{
-            //parse the last filename into a date
-            Date last_bup = file_date_format.parse(last_name);
+        String todays_name = file_date_format.format(new Date());
+        String todays_day = todays_name.split(" - ")[0];
 
-            if(last_bup == null) return true;
-
-            //get calendar instances
-            Calendar ctoday = Calendar.getInstance();
-            ctoday.setTime(today);
-
-            Calendar clast_bup = Calendar.getInstance();
-            clast_bup.setTime(last_bup);
-
-            //return true if today is a different day from last backup
-            return !(ctoday.get(Calendar.DAY_OF_YEAR) == clast_bup.get(Calendar.DAY_OF_YEAR) &&
-                    ctoday.get(Calendar.YEAR) == clast_bup.get(Calendar.YEAR));
-        }catch(ParseException e){
-            e.printStackTrace();
-        }
-
-        return true;
+        return last_day.equals(todays_day);
     }
 
     public void cleanBackupDir(int cull_after_days) {

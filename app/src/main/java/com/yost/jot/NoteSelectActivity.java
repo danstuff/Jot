@@ -133,12 +133,12 @@ public class NoteSelectActivity extends AppCompatActivity
             @Override public String delete(int pos) {
                 deletedNote = noteList.getNote(pos);
 
-                noteIO.save(noteList);
-
                 noteList.removeNote(pos);
 
                 //notify the adapter
                 NotesAdapter.notifyItemRemoved(pos);
+
+                noteIO.save(noteList);
 
                 //show empty message if notelist is empty
                 if(noteList.getSize() == 0){

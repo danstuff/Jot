@@ -1,5 +1,7 @@
 package com.yost.jot;
 
+import android.app.Activity;
+import android.graphics.Color;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
@@ -9,6 +11,8 @@ import android.widget.EditText;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.yost.jot.util.ColorUpdater;
 
 public class NoteEditAdapter extends RecyclerView.Adapter<NoteEditAdapter.ViewHolder> {
     public interface NoteBindInterface {
@@ -51,7 +55,7 @@ public class NoteEditAdapter extends RecyclerView.Adapter<NoteEditAdapter.ViewHo
         return lengthInterface.getLength();
     }
 
-    public class ViewHolder extends RecyclerView.ViewHolder /*implements View.OnFocusChangeListener */ {
+    public class ViewHolder extends RecyclerView.ViewHolder {
         protected EditText LineText;
 
         public ViewHolder(View view) {
@@ -68,6 +72,12 @@ public class NoteEditAdapter extends RecyclerView.Adapter<NoteEditAdapter.ViewHo
                     updateInterface.onLineUpdate(ViewHolder.this, s);
                 }
             });
+
+            //set the grip's background color properly
+            View Grip = view.findViewById(R.id.Grip);
+            Grip.setBackgroundColor(ColorUpdater.getColor("header_color",
+                    "black", Color.BLACK, (Activity)view.getContext()));
+
         }
     }
 }

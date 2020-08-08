@@ -2,41 +2,34 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
-
     <EditText
         android:id="@+id/LineText"
         android:layout_width="match_parent"
-        android:layout_height="30dp"
-        android:layout_marginStart="40dp"
-        android:layout_marginEnd="40dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="10dp"
         android:layout_marginTop="10dp"
+        android:layout_marginBottom="14dp"
         android:scrollHorizontally="false"
         android:background="@null"
         android:textColor="@color/colorMainText"
-        android:inputType="textCapSentences"
-        android:singleLine="true" />
+        android:inputType="textMultiLine"
+        android:maxLines="10"
+        android:layout_toEndOf="@id/Grip"/>
 
-    <Button
-        android:id="@+id/GripLeft"
-        android:layout_width="50dp"
-        android:layout_height="wrap_content"
-        android:layout_alignStart="@id/LineText"
-        android:layout_marginStart="-50dp"
-        android:background="#00FFFFFF"
-        android:backgroundTint="#00FFFFFF"
-        android:textColor="@color/colorMainText"
-        android:text="["
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1" />
+    <View
+        android:id="@+id/BaseLine"
+        android:layout_width="fill_parent"
+        android:layout_height="3dp"
+        android:layout_marginTop="-3dp"
+        android:background="@color/darken"
+        android:layout_below="@id/LineText"/>
 
-    <Button
-        android:id="@+id/GripRight"
-        android:layout_width="50dp"
-        android:layout_height="wrap_content"
-        android:layout_alignEnd="@id/LineText"
-        android:layout_marginEnd="-50dp"
-        android:background="#00FFFFFF"
-        android:textColor="@color/colorMainText"
-        android:text="]"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1" />
-
+    <View
+        android:id="@+id/Grip"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:background="@color/colorHeader"
+        android:layout_above="@+id/BaseLine"
+        android:layout_alignParentTop="true"/>
 </RelativeLayout>
