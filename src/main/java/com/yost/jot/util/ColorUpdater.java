@@ -7,12 +7,21 @@ import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.EditText;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.textfield.TextInputLayout;
+import com.yost.jot.NoteEditAdapter;
+import com.yost.jot.NoteSelectAdapter;
 import com.yost.jot.R;
+
+import java.util.Objects;
 
 public class ColorUpdater {
 
@@ -42,32 +51,77 @@ public class ColorUpdater {
         rootView.setBackgroundColor(backgroundColor);
 
         //set settings button color, if one exists
-        View optsButton = activity.findViewById(R.id.ViewOptions);
+        AppCompatButton optsButton = activity.findViewById(R.id.ViewOptions);
         if(optsButton != null){
             optsButton.setBackgroundTintList(ColorStateList.valueOf(headerColor));
+            optsButton.setCompoundDrawableTintList(ColorStateList.valueOf(backgroundColor));
+        }
+
+        //set add lines button color, if one exists
+        AppCompatButton lineButton = activity.findViewById(R.id.AddLine);
+        if(lineButton != null){
+            lineButton.setBackgroundTintList(ColorStateList.valueOf(headerColor));
+            lineButton.setCompoundDrawableTintList(ColorStateList.valueOf(backgroundColor));
+        }
+
+        //set save icon color, if one exists
+        AppCompatButton saveIcon = activity.findViewById(R.id.SaveIcon);
+        if(saveIcon != null){
+            saveIcon.setCompoundDrawableTintList(ColorStateList.valueOf(backgroundColor));
         }
 
         //set recyclerview background colors
         RecyclerView recyclerNotes = activity.findViewById(R.id.NotesRecycler);
         if(recyclerNotes != null){
             recyclerNotes.setBackgroundColor(backgroundColor);
+
+            //set colors of all child elements
+            for(int i = 0; i < recyclerNotes.getChildCount(); i++) {
+                NoteSelectAdapter.ViewHolder holder = (NoteSelectAdapter.ViewHolder)
+                        recyclerNotes.findViewHolderForAdapterPosition(i);
+                assert holder != null;
+
+                holder.title.setTextColor(headerColor);
+                holder.first_line.setTextColor(headerColor);
+            }
         }
 
         RecyclerView recyclerLines = activity.findViewById(R.id.LineRecycler);
         if(recyclerLines != null){
             recyclerLines.setBackgroundColor(backgroundColor);
+
+            //set colors of all child elements
+            for(int i = 0; i < recyclerLines.getChildCount(); i++) {
+                NoteEditAdapter.ViewHolder holder = (NoteEditAdapter.ViewHolder)
+                        recyclerLines.findViewHolderForAdapterPosition(i);
+                assert holder != null;
+
+                holder.LineText.setTextColor(headerColor);
+
+                holder.Grip.setTextColor(backgroundColor);
+                holder.Grip.setBackgroundColor(headerColor);
+            }
         }
 
         //set editText header color, if one exists
-        View textLayout = activity.findViewById(R.id.TitleInputLayout);
+        TextInputLayout textLayout = activity.findViewById(R.id.TitleInputLayout);
         if(textLayout != null){
             textLayout.setBackgroundColor(headerColor);
+            Objects.requireNonNull(textLayout.getEditText()).setTextColor(backgroundColor);
+            textLayout.setDefaultHintTextColor(ColorStateList.valueOf(backgroundColor));
         }
 
         //set settings menu header color
-        View settingsHeader = activity.findViewById(R.id.SettingsHeader);
+        TextView settingsHeader = activity.findViewById(R.id.SettingsHeader);
         if(settingsHeader != null){
             settingsHeader.setBackgroundColor(headerColor);
+            settingsHeader.setTextColor(backgroundColor);
+        }
+
+        //settings background will always be white
+        FrameLayout settingsFrame = activity.findViewById(R.id.settings);
+        if(settingsFrame != null){
+            settingsFrame.setBackgroundColor(Color.WHITE);
         }
 
         //set status bar color

@@ -17,11 +17,15 @@ import androidx.preference.PreferenceManager;
 import com.yost.jot.util.AlertUtil;
 import com.yost.jot.util.ColorUpdater;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class SettingsActivity extends AppCompatActivity
         implements ActivityCompat.OnRequestPermissionsResultCallback{
     private static final int REQUEST_BACKUP_EXPORT = 101;
     private static final int REQUEST_BACKUP_IMPORT = 102;
     private static final int REQUEST_BACKUP_CULL = 103;
+    private static final int COLOR_UPDATE_DELAY_MS = 10;
 
     private NoteIO noteIO;
     private NoteList noteList;
@@ -43,10 +47,18 @@ public class SettingsActivity extends AppCompatActivity
 
         settingsInstance = this;
 
-        ColorUpdater.updateColors(this);
-
         noteIO = new NoteIO(this);
         noteList = noteIO.load(new NoteList());
+
+        new Timer().schedule(new TimerTask() {
+            @Override public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        ColorUpdater.updateColors(SettingsActivity.this);
+                    }
+                });
+            }
+        }, COLOR_UPDATE_DELAY_MS);
     }
 
     public static class SettingsFragment extends PreferenceFragmentCompat {

@@ -57,8 +57,8 @@ public class NoteEditAdapter extends RecyclerView.Adapter<NoteEditAdapter.ViewHo
     }
 
     public class ViewHolder extends RecyclerView.ViewHolder {
-        protected EditText LineText;
-        protected TextView Grip;
+        public EditText LineText;
+        public TextView Grip;
 
         public ViewHolder(View view) {
             super(view);

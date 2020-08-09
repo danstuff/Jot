@@ -25,11 +25,16 @@ import com.yost.jot.util.ColorUpdater;
 import com.yost.jot.util.GestureUtil;
 import com.yost.jot.util.ItemTouchUtil;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
 public class NoteSelectActivity extends AppCompatActivity
         implements ActivityCompat.OnRequestPermissionsResultCallback {
     public static final String SELECTED_NOTE_INDEX = "SelNoteIndex";
 
     private static final int REQUEST_BACKUP_EXPORT = 101;
+
+    private static final int COLOR_UPDATE_DELAY_MS = 100;
 
     private TextView EmptyMessage;
 
@@ -43,8 +48,6 @@ public class NoteSelectActivity extends AppCompatActivity
     @Override protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_note_select);
-
-        ColorUpdater.updateColors(this);
 
         noteIO = new NoteIO(this);
 
@@ -183,6 +186,16 @@ public class NoteSelectActivity extends AppCompatActivity
             String[] perms = {Manifest.permission.WRITE_EXTERNAL_STORAGE};
             requestPermissions(perms, REQUEST_BACKUP_EXPORT);
         }
+
+        new Timer().schedule(new TimerTask() {
+            @Override public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        ColorUpdater.updateColors(NoteSelectActivity.this);
+                    }
+                });
+            }
+        }, COLOR_UPDATE_DELAY_MS);
     }
 
     @Override
