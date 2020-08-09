@@ -7,24 +7,14 @@ import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
+import android.widget.TextView;
+
 import androidx.preference.PreferenceManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.yost.jot.R;
 
 public class ColorUpdater {
-    private static final float DARKEN_FACTOR = 0.9f;
-
-    private static int darken(int color){
-        int r = Math.round(Color.red(color) * DARKEN_FACTOR);
-        int g = Math.round(Color.green(color) * DARKEN_FACTOR);
-        int b = Math.round(Color.blue(color) * DARKEN_FACTOR);
-
-        return Color.rgb(
-                Math.min(r,255),
-                Math.min(g,255),
-                Math.min(b,255));
-    }
 
     public static int getColor(String key, String default_val, int default_color, Activity activity){
         SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(activity);
@@ -84,7 +74,6 @@ public class ColorUpdater {
         activity.getWindow().setStatusBarColor(headerColor);
 
         //set nav bar color
-        int navbarColor = darken(backgroundColor);
-        window.setNavigationBarColor(navbarColor);
+        window.setNavigationBarColor(headerColor);
     }
 }

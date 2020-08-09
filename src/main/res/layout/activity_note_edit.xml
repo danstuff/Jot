@@ -23,6 +23,6 @@
         android:minHeight="60dp"
         android:paddingStart="13dp"
         android:paddingEnd="0dp"
-        app:backgroundTint="@color/colorHeader" />
+        android:backgroundTint="@color/colorHeader" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

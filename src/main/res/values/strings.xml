@@ -22,4 +22,6 @@
     <string name="backup_notes">Backup All Notes</string>
     <string name="backup_recover">Recover Notes from Backup</string>
     <string name="backup_delete">Delete Backups Older Than…</string>
+
+    <string name="zero">0</string>
 </resources>

@@ -10,6 +10,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatButton;
 import androidx.recyclerview.widget.DefaultItemAnimator;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -112,7 +113,7 @@ public class NoteEditActivity extends AppCompatActivity {
                     //fetch note from list; set the holder's LineText entry
                     String content_str = note.getLine(pos).getContent();
                     holder.LineText.setText(content_str);
-                    holder.GripLeft.setText(pos);
+                    holder.Grip.setText(Integer.toString(pos+1));
                 }
             },
             new NoteEditAdapter.NoteUpdateInterface() {
@@ -120,6 +121,7 @@ public class NoteEditActivity extends AppCompatActivity {
                 public void onLineUpdate(NoteEditAdapter.ViewHolder holder, Editable edit) {
                     //update the note when the text is changed
                     note.getLine(holder.getAdapterPosition()).setContent(edit.toString());
+                    holder.Grip.setText(Integer.toString(holder.getAdapterPosition()+1));
                 }
             },
             new NoteEditAdapter.NoteLengthInterface(){
@@ -167,41 +169,17 @@ public class NoteEditActivity extends AppCompatActivity {
         //double tap creates new lines
         GestureUtil.bindGesture(this, LineRecycler, new GestureUtil.DoubleTap() {
             @Override public void onDoubleTap() {
-                EmptyMessage.setVisibility(View.GONE);
+                addLine();
+            }
+        });
 
-                //add an entry and update the adapter
-                note.newLine();
+        //find the add button
+        AppCompatButton AddLineButton = findViewById(R.id.AddLine);
 
-                LineAdapter.notifyDataSetChanged();
-
-                new Timer().schedule(new TimerTask() {
-                    @Override public void run() {
-                        runOnUiThread(new Runnable() {
-                            @Override public void run() {
-                                //focus on the new element
-                                LineRecycler.scrollToPosition(0);
-                                RecyclerView.LayoutManager lm = LineRecycler.getLayoutManager();
-
-                                if(lm == null){ return; }
-
-                                View LineView = lm.findViewByPosition(0);
-
-                                if(LineView == null){ return; }
-
-                                EditText LineText = LineView.findViewById(R.id.LineText);
-                                LineText.requestFocus();
-
-                                InputMethodManager imm = (InputMethodManager)
-                                        getSystemService(Context.INPUT_METHOD_SERVICE);
-
-                                if(imm == null){ return; }
-
-                                //open the keyboard
-                                imm.showSoftInput(LineText,0);
-                            }
-                        });
-                    }
-                }, FOCUS_LINE_DELAY_MS);
+        //set add button action to add a new line
+        AddLineButton.setOnClickListener(new View.OnClickListener() {
+            @Override public void onClick(View v) {
+                addLine();
             }
         });
 
@@ -212,6 +190,44 @@ public class NoteEditActivity extends AppCompatActivity {
             }
         }, AUTO_SAVE_INTERVAL_MS);
         interval.start();
+    }
+
+    private void addLine() {
+        EmptyMessage.setVisibility(View.GONE);
+
+        //add an entry and update the adapter
+        note.newLine();
+
+        LineAdapter.notifyDataSetChanged();
+
+        new Timer().schedule(new TimerTask() {
+            @Override public void run() {
+                runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        //focus on the new element
+                        LineRecycler.scrollToPosition(0);
+                        RecyclerView.LayoutManager lm = LineRecycler.getLayoutManager();
+
+                        if(lm == null){ return; }
+
+                        View LineView = lm.findViewByPosition(0);
+
+                        if(LineView == null){ return; }
+
+                        EditText LineText = LineView.findViewById(R.id.LineText);
+                        LineText.requestFocus();
+
+                        InputMethodManager imm = (InputMethodManager)
+                                getSystemService(Context.INPUT_METHOD_SERVICE);
+
+                        if(imm == null){ return; }
+
+                        //open the keyboard
+                        imm.showSoftInput(LineText,0);
+                    }
+                });
+            }
+        }, FOCUS_LINE_DELAY_MS);
     }
 
     private void save(){

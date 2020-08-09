@@ -13,11 +13,11 @@
         android:scrollHorizontally="false"
         android:background="@null"
         android:textColor="@color/colorMainText"
-        android:inputType="textMultiLine"
-        android:maxLines="10"
+        android:inputType="textCapSentences"
+        android:fontFamily="monospace"
+        android:maxLines="1"
         android:layout_toEndOf="@id/Grip"/>
 
-<<<<<<< HEAD
     <View
         android:id="@+id/BaseLine"
         android:layout_width="fill_parent"
@@ -25,12 +25,13 @@
         android:layout_marginTop="-3dp"
         android:background="@color/darken"
         android:layout_below="@id/LineText"/>
-=======
->>>>>>> b8705830dfd54110802fa8f406f10ad8e9e1de0e
 
-    <View
+    <TextView
         android:id="@+id/Grip"
-        android:layout_width="20dp"
+        android:text="@string/zero"
+        android:textColor="@color/colorHeaderText"
+        android:gravity="center"
+        android:layout_width="25dp"
         android:layout_height="20dp"
         android:background="@color/colorHeader"
         android:layout_above="@+id/BaseLine"

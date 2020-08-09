@@ -14,7 +14,6 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -24,8 +23,6 @@ import java.util.Locale;
 public class NoteIO {
     private static final String LOCAL_SAVE_FN = "jot.data";
     private static final String NEW_NOTE_TAG = "`~";
-
-    private static final String NON_PARSEABLE_FN =  "00_00_00 - 00:00.txt";
 
     private AppCompatActivity activity;
 

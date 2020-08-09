@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -57,6 +58,7 @@ public class NoteEditAdapter extends RecyclerView.Adapter<NoteEditAdapter.ViewHo
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         protected EditText LineText;
+        protected TextView Grip;
 
         public ViewHolder(View view) {
             super(view);
@@ -74,7 +76,7 @@ public class NoteEditAdapter extends RecyclerView.Adapter<NoteEditAdapter.ViewHo
             });
 
             //set the grip's background color properly
-            View Grip = view.findViewById(R.id.Grip);
+            Grip = view.findViewById(R.id.Grip);
             Grip.setBackgroundColor(ColorUpdater.getColor("header_color",
                     "black", Color.BLACK, (Activity)view.getContext()));
 
