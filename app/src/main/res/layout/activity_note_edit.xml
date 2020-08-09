@@ -7,5 +7,22 @@
     tools:activity=".NoteEditActivity">
 
     <include layout="@layout/content_note_edit" />
+	
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/AddLine"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end|bottom"
+        android:width="60dp"
+        android:height="60dp"
+        android:background="@drawable/corner_button_bottom"
+        android:drawableStart="@drawable/ic_add"
+        android:drawableTint="@color/colorHeaderText"
+        android:elevation="8dp"
+        android:minWidth="60dp"
+        android:minHeight="60dp"
+        android:paddingStart="13dp"
+        android:paddingEnd="0dp"
+        app:backgroundTint="@color/colorHeader" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

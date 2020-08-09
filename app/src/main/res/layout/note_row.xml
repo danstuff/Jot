@@ -17,6 +17,7 @@
         android:maxLines="10"
         android:layout_toEndOf="@id/Grip"/>
 
+<<<<<<< HEAD
     <View
         android:id="@+id/BaseLine"
         android:layout_width="fill_parent"
@@ -24,6 +25,8 @@
         android:layout_marginTop="-3dp"
         android:background="@color/darken"
         android:layout_below="@id/LineText"/>
+=======
+>>>>>>> b8705830dfd54110802fa8f406f10ad8e9e1de0e
 
     <View
         android:id="@+id/Grip"
