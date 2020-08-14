@@ -14,8 +14,7 @@
         android:background="@null"
         android:textColor="@color/colorMainText"
         android:inputType="textCapSentences"
-        android:fontFamily="monospace"
-        android:maxLines="1"
+        android:maxLength="32"
         android:layout_toEndOf="@id/Grip"/>
 
     <View

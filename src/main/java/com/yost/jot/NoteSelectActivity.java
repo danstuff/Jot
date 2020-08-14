@@ -34,8 +34,6 @@ public class NoteSelectActivity extends AppCompatActivity
 
     private static final int REQUEST_BACKUP_EXPORT = 101;
 
-    private static final int COLOR_UPDATE_DELAY_MS = 100;
-
     private TextView EmptyMessage;
 
     private NoteSelectAdapter NotesAdapter;
@@ -187,15 +185,7 @@ public class NoteSelectActivity extends AppCompatActivity
             requestPermissions(perms, REQUEST_BACKUP_EXPORT);
         }
 
-        new Timer().schedule(new TimerTask() {
-            @Override public void run() {
-                runOnUiThread(new Runnable() {
-                    @Override public void run() {
-                        ColorUpdater.updateColors(NoteSelectActivity.this);
-                    }
-                });
-            }
-        }, COLOR_UPDATE_DELAY_MS);
+        ColorUpdater.updateColors(NoteSelectActivity.this);
     }
 
     @Override

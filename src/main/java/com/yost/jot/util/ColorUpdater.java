@@ -22,8 +22,11 @@ import com.yost.jot.NoteSelectAdapter;
 import com.yost.jot.R;
 
 import java.util.Objects;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class ColorUpdater {
+    public static final int COLOR_UPDATE_DELAY_MS = 250;
 
     public static int getColor(String key, String default_val, int default_color, Activity activity){
         SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(activity);
@@ -39,7 +42,19 @@ public class ColorUpdater {
         return headerColor;
     }
 
-    public static void updateColors(Activity activity){
+    public static void updateColors(final Activity activity){
+        new Timer().schedule(new TimerTask() {
+            @Override public void run() {
+                activity.runOnUiThread(new Runnable() {
+                    @Override public void run() {
+                        doColorUpdate(activity);
+                    }
+                });
+            }
+        }, COLOR_UPDATE_DELAY_MS);
+    }
+
+    private static void doColorUpdate(Activity activity){
         Window window = activity.getWindow();
 
         //get header and background colors

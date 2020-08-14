@@ -29,7 +29,6 @@ public class NoteEditActivity extends AppCompatActivity {
 
     public static final int FOCUS_LINE_DELAY_MS = 5;
 
-    public static final int COLOR_UPDATE_DELAY_MS = 100;
 
     public static final int SAVE_ICON_APPEAR_MS = 500;
 
@@ -191,15 +190,7 @@ public class NoteEditActivity extends AppCompatActivity {
         }, AUTO_SAVE_INTERVAL_MS);
         interval.start();
 
-        new Timer().schedule(new TimerTask() {
-            @Override public void run() {
-                runOnUiThread(new Runnable() {
-                    @Override public void run() {
-                        ColorUpdater.updateColors(NoteEditActivity.this);
-                    }
-                });
-            }
-        }, COLOR_UPDATE_DELAY_MS);
+        ColorUpdater.updateColors(NoteEditActivity.this);
     }
 
     private void addLine() {
@@ -209,6 +200,8 @@ public class NoteEditActivity extends AppCompatActivity {
         note.newLine();
 
         LineAdapter.notifyDataSetChanged();
+
+        ColorUpdater.updateColors(NoteEditActivity.this);
 
         new Timer().schedule(new TimerTask() {
             @Override public void run() {
