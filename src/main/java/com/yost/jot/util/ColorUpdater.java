@@ -26,7 +26,7 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 public class ColorUpdater {
-    public static final int COLOR_UPDATE_DELAY_MS = 250;
+    public static final int COLOR_UPDATE_DELAY_MS = 300;
 
     public static int getColor(String key, String default_val, int default_color, Activity activity){
         SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(activity);

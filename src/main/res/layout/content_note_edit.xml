@@ -31,7 +31,7 @@
             android:textColor="@color/colorHeaderText"
             android:inputType="textCapWords"
             android:background="@null"
-            android:maxLength="30"
+            android:maxLength="32"
             android:singleLine="true"
             android:textSize="22sp" />
     </com.google.android.material.textfield.TextInputLayout>
